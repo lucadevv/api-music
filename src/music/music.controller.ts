@@ -11,7 +11,10 @@ import {
   Body,
   DefaultValuePipe,
   ParseIntPipe,
+  Inject,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -39,6 +42,7 @@ export class MusicController {
     private readonly recentSearchService: RecentSearchService,
     private readonly libraryService: LibraryService,
     private readonly listenHistoryService: ListenHistoryService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Get('explore')
@@ -48,7 +52,13 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async explore() {
     try {
-      return await this.musicApiService.explore();
+      const cacheKey = 'music_explore';
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.explore();
+      await this.cacheManager.set(cacheKey, data, 300000); // 5 minutos en milisegundos
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch explore content', HttpStatus.BAD_GATEWAY);
     }
@@ -62,7 +72,13 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getMoodPlaylists(@Param('params') params: string) {
     try {
-      return await this.musicApiService.getMoodPlaylists(params);
+      const cacheKey = `music_mood:${params}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.getMoodPlaylists(params);
+      await this.cacheManager.set(cacheKey, data, 1800000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch mood playlists', HttpStatus.BAD_GATEWAY);
     }
@@ -76,7 +92,13 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getGenrePlaylists(@Param('params') params: string) {
     try {
-      return await this.musicApiService.getGenrePlaylists(params);
+      const cacheKey = `music_genre:${params}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.getGenrePlaylists(params);
+      await this.cacheManager.set(cacheKey, data, 1800000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch genre playlists', HttpStatus.BAD_GATEWAY);
     }
@@ -96,7 +118,13 @@ export class MusicController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
     try {
-      return await this.musicApiService.getPlaylist(playlistId, startIndex, limit);
+      const cacheKey = `music_playlist:${playlistId}:${startIndex}:${limit}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.getPlaylist(playlistId, startIndex, limit);
+      await this.cacheManager.set(cacheKey, data, 600000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch playlist', HttpStatus.BAD_GATEWAY);
     }
@@ -155,11 +183,14 @@ export class MusicController {
     }
 
     try {
-      // Guardar la búsqueda (solo la query, sin canción seleccionada)
-      // La canción se actualiza cuando el usuario selecciona una (ver updateSelectedSong)
-      await this.recentSearchService.saveSearch(user.userId, query, filter);
+      const cacheKey = `music_search:${query}:${filter}:${startIndex}:${limit}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
 
       const results = await this.musicApiService.search(query, filter, startIndex, limit);
+      await this.cacheManager.set(cacheKey, results, 300000);
+
+      await this.recentSearchService.saveSearch(user.userId, query, filter);
       return results;
     } catch (error) {
       throw new HttpException('Failed to search music', HttpStatus.BAD_GATEWAY);
@@ -354,12 +385,18 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getCategories() {
     try {
+      const cacheKey = 'music_categories';
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
       const exploreContent = await this.musicApiService.explore();
-      return {
+      const data = {
         moods: exploreContent.moods || [],
         genres: exploreContent.genres || [],
         charts: exploreContent.charts || [],
       };
+      await this.cacheManager.set(cacheKey, data, 300000); // 5 minutos
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch categories', HttpStatus.BAD_GATEWAY);
     }
@@ -372,8 +409,14 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getGenres() {
     try {
+      const cacheKey = 'music_genres';
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
       const exploreContent = await this.musicApiService.explore();
-      return { genres: exploreContent.genres || [], moods: exploreContent.moods || [] };
+      const data = { genres: exploreContent.genres || [], moods: exploreContent.moods || [] };
+      await this.cacheManager.set(cacheKey, data, 300000); // 5 minutos
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch genres', HttpStatus.BAD_GATEWAY);
     }
@@ -393,7 +436,13 @@ export class MusicController {
     @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
   ) {
     try {
-      return await this.musicApiService.getRadioPlaylist(videoId, limit, startIndex, true); // include_stream_urls=true
+      const cacheKey = `music_radio:${videoId}:${limit}:${startIndex}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.getRadioPlaylist(videoId, limit, startIndex, true);
+      await this.cacheManager.set(cacheKey, data, 600000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch radio playlist', HttpStatus.BAD_GATEWAY);
     }
@@ -421,15 +470,21 @@ export class MusicController {
       throw new HttpException('Se requiere video_id o playlist_id', HttpStatus.BAD_REQUEST);
     }
     try {
-      return await this.musicApiService.getWatchPlaylist(
+      const cacheKey = `music_watch:${videoId || ''}:${playlistId || ''}:${limit}:${startIndex}:${shuffle}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.getWatchPlaylist(
         videoId || undefined,
         playlistId || undefined,
         limit,
         startIndex,
         shuffle,
-        true, // includeStreamUrls
-        10, // prefetchCount
+        true,
+        10,
       );
+      await this.cacheManager.set(cacheKey, data, 600000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch watch playlist', HttpStatus.BAD_GATEWAY);
     }
@@ -443,7 +498,13 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getLyrics(@Param('browseId') browseId: string) {
     try {
-      return await this.musicApiService.getLyrics(browseId);
+      const cacheKey = `music_lyrics:${browseId}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
+      const data = await this.musicApiService.getLyrics(browseId);
+      await this.cacheManager.set(cacheKey, data, 3600000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch lyrics', HttpStatus.BAD_GATEWAY);
     }

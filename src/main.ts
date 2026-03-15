@@ -4,15 +4,23 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import compression from 'compression';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: true,
+    logger: ['error', 'warn'],
+  });
+  
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port');
   const apiPrefix = configService.get<string>('app.apiPrefix');
 
   app.setGlobalPrefix(apiPrefix ?? '');
+
+  // Compression - mejora rendimiento significativamente
+  app.use(compression());
 
   // Security headers with Helmet
   app.use(helmet());
