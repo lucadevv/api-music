@@ -109,7 +109,7 @@ import { SharedModule } from './shared/shared.module';
           UserListenHistory,
         ],
         synchronize: configService.get<string>('app.environment') === 'development',
-        logging: configService.get<string>('app.environment') === 'development',
+        logging: false,
         retryAttempts: 3,
         retryDelay: 3000,
       }),
