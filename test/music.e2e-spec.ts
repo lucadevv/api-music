@@ -3,7 +3,6 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { MusicApiService } from '../src/music/services/music-api.service';
-import { of } from 'rxjs';
 
 // Mock data
 const mockExploreResponse = {
@@ -37,7 +36,6 @@ const mockPlaylistResponse = {
 describe('MusicController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let musicApiService: MusicApiService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -59,7 +57,7 @@ describe('MusicController (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     await app.init();
 
-    musicApiService = moduleFixture.get<MusicApiService>(MusicApiService);
+
 
     // Register and login to get token
     const registerResponse = await request(app.getHttpServer())

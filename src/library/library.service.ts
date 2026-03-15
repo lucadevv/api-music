@@ -308,13 +308,16 @@ export class LibraryService {
     page: number = 1,
     limit: number = 20,
   ): Promise<{ data: FavoritePlaylist[]; total: number }> {
-    const [data, total] = await this.favoritePlaylistRepository.findAndCount({
-      where: { userId },
-      relations: ['playlist', 'playlist.user', 'playlist.songs'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const [data, total] = await this.favoritePlaylistRepository
+      .createQueryBuilder('fp')
+      .leftJoinAndSelect('fp.playlist', 'p')
+      .leftJoinAndSelect('p.user', 'u')
+      .leftJoinAndSelect('p.songs', 's')
+      .where('fp.userId = :userId', { userId })
+      .orderBy('fp.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
     return { data, total };
   }

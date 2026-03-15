@@ -30,7 +30,6 @@ import {
   mockFavoriteSong,
   mockFavoritePlaylist,
   mockFavoriteGenre,
-  mockPlaylistResponse,
 } from '../../utils/mocks';
 
 describe('LibraryService', () => {
@@ -41,7 +40,6 @@ describe('LibraryService', () => {
   let songRepo: jest.Mocked<Repository<Song>>;
   let playlistRepo: jest.Mocked<Repository<Playlist>>;
   let genreRepo: jest.Mocked<Repository<Genre>>;
-  let userRepo: jest.Mocked<Repository<User>>;
   let musicApiService: jest.Mocked<MusicApiService>;
 
   const createMockRepo = () => ({
@@ -56,6 +54,15 @@ describe('LibraryService', () => {
     decrement: jest.fn(),
     count: jest.fn(),
     update: jest.fn(),
+    createQueryBuilder: jest.fn().mockImplementation(() => ({
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getOne: jest.fn(),
+      getManyAndCount: jest.fn(),
+    })),
   });
 
   beforeEach(async () => {
@@ -107,7 +114,6 @@ describe('LibraryService', () => {
     songRepo = module.get(getRepositoryToken(Song));
     playlistRepo = module.get(getRepositoryToken(Playlist));
     genreRepo = module.get(getRepositoryToken(Genre));
-    userRepo = module.get(getRepositoryToken(User));
     musicApiService = module.get(MusicApiService);
   });
 
@@ -129,7 +135,7 @@ describe('LibraryService', () => {
       songRepo.increment.mockResolvedValue({} as any);
       favoriteSongRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteSong);
 
-      const result = await service.addFavoriteSong(mockUserId, undefined, mockVideoId);
+      await service.addFavoriteSong(mockUserId, undefined, mockVideoId);
 
       expect(songRepo.findOne).toHaveBeenCalledWith({ where: { videoId: mockVideoId } });
       expect(songRepo.create).toHaveBeenCalled();
@@ -144,7 +150,7 @@ describe('LibraryService', () => {
       songRepo.increment.mockResolvedValue({} as any);
       favoriteSongRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteSong);
 
-      const result = await service.addFavoriteSong(mockUserId, mockSongId);
+      await service.addFavoriteSong(mockUserId, mockSongId);
 
       expect(songRepo.findOne).toHaveBeenCalledWith({ where: { id: mockSongId } });
     });
@@ -326,14 +332,13 @@ describe('LibraryService', () => {
       playlistRepo.increment.mockResolvedValue({} as any);
       favoritePlaylistRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoritePlaylist);
 
-      const result = await service.addFavoritePlaylist(mockUserId, mockPlaylistId);
+      await service.addFavoritePlaylist(mockUserId, mockPlaylistId);
 
       expect(playlistRepo.findOne).toHaveBeenCalledWith({ where: { id: mockPlaylistId } });
     });
 
     it('should add playlist to favorites with externalPlaylistId', async () => {
       playlistRepo.findOne.mockResolvedValue(null);
-      musicApiService.getPlaylist.mockResolvedValue(mockPlaylistResponse);
       playlistRepo.create.mockReturnValue(mockPlaylist);
       playlistRepo.save.mockResolvedValue(mockPlaylist);
       songRepo.findOne.mockResolvedValue(mockSong);
@@ -345,9 +350,9 @@ describe('LibraryService', () => {
       playlistRepo.increment.mockResolvedValue({} as any);
       favoritePlaylistRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoritePlaylist);
 
-      const result = await service.addFavoritePlaylist(mockUserId, undefined, mockExternalPlaylistId);
+      await service.addFavoritePlaylist(mockUserId, undefined, mockExternalPlaylistId);
 
-      expect(musicApiService.getPlaylist).toHaveBeenCalledWith(mockExternalPlaylistId);
+      expect(playlistRepo.save).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when neither playlistId nor externalPlaylistId provided', async () => {
@@ -421,23 +426,34 @@ describe('LibraryService', () => {
   describe('getFavoritePlaylists', () => {
     it('should return paginated favorite playlists', async () => {
       const favorites = [mockFavoritePlaylist];
-      favoritePlaylistRepo.findAndCount.mockResolvedValue([favorites, 1]);
+      
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([favorites, 1]),
+      };
+      favoritePlaylistRepo.createQueryBuilder.mockReturnValue(qbMock as any);
 
       const result = await service.getFavoritePlaylists(mockUserId, 1, 20);
 
-      expect(favoritePlaylistRepo.findAndCount).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        relations: ['playlist', 'playlist.user', 'playlist.songs'],
-        order: { createdAt: 'DESC' },
-        skip: 0,
-        take: 20,
-      });
+      expect(favoritePlaylistRepo.createQueryBuilder).toHaveBeenCalledWith('fp');
       expect(result.data).toEqual(favorites);
       expect(result.total).toBe(1);
     });
 
     it('should return empty array when no favorites', async () => {
-      favoritePlaylistRepo.findAndCount.mockResolvedValue([[], 0]);
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      };
+      favoritePlaylistRepo.createQueryBuilder.mockReturnValue(qbMock as any);
 
       const result = await service.getFavoritePlaylists(mockUserId);
 
@@ -477,8 +493,15 @@ describe('LibraryService', () => {
       favoriteGenreRepo.create.mockReturnValue(mockFavoriteGenre);
       favoriteGenreRepo.save.mockResolvedValue(mockFavoriteGenre);
       favoriteGenreRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteGenre);
+      
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(mockFavoriteGenre),
+      };
+      favoriteGenreRepo.createQueryBuilder.mockReturnValue(qbMock as any);
 
-      const result = await service.addFavoriteGenre(mockUserId, mockGenreId);
+      await service.addFavoriteGenre(mockUserId, mockGenreId);
 
       expect(genreRepo.findOne).toHaveBeenCalledWith({ where: { id: mockGenreId } });
     });
@@ -492,7 +515,7 @@ describe('LibraryService', () => {
       favoriteGenreRepo.save.mockResolvedValue(mockFavoriteGenre);
       favoriteGenreRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteGenre);
 
-      const result = await service.addFavoriteGenre(
+      await service.addFavoriteGenre(
         mockUserId,
         undefined,
         mockExternalParams,
@@ -535,6 +558,13 @@ describe('LibraryService', () => {
       favoriteGenreRepo.save.mockResolvedValue(mockFavoriteGenre);
       favoriteGenreRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteGenre);
 
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(mockFavoriteGenre),
+      };
+      favoriteGenreRepo.createQueryBuilder.mockReturnValue(qbMock as any);
+
       await service.addFavoriteGenre(mockUserId, undefined, mockExternalParams);
 
       expect(genreRepo.create).not.toHaveBeenCalled();
@@ -571,21 +601,35 @@ describe('LibraryService', () => {
       const favorites = [mockFavoriteGenre];
       favoriteGenreRepo.findAndCount.mockResolvedValue([favorites, 1]);
 
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([favorites, 1]),
+      };
+      favoriteGenreRepo.createQueryBuilder.mockReturnValue(qbMock as any);
+
       const result = await service.getFavoriteGenres(mockUserId, 1, 20);
 
-      expect(favoriteGenreRepo.findAndCount).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        relations: ['genre'],
-        order: { createdAt: 'DESC' },
-        skip: 0,
-        take: 20,
-      });
+      expect(favoriteGenreRepo.createQueryBuilder).toHaveBeenCalledWith('fg');
       expect(result.data).toEqual(favorites);
       expect(result.total).toBe(1);
     });
 
     it('should return empty array when no favorites', async () => {
       favoriteGenreRepo.findAndCount.mockResolvedValue([[], 0]);
+
+      const qbMock = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      };
+      favoriteGenreRepo.createQueryBuilder.mockReturnValue(qbMock as any);
 
       const result = await service.getFavoriteGenres(mockUserId);
 

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { RecentSearchService } from '../../../src/music/services/recent-search.service';
 import { RecentSearch } from '../../../src/music/entities/recent-search.entity';
 import {
@@ -12,8 +12,6 @@ import {
 
 describe('RecentSearchService', () => {
   let service: RecentSearchService;
-  let repository: jest.Mocked<Repository<RecentSearch>>;
-  let dataSource: jest.Mocked<DataSource>;
 
   const mockRepository = {
     findOne: jest.fn(),
@@ -44,8 +42,6 @@ describe('RecentSearchService', () => {
     }).compile();
 
     service = module.get<RecentSearchService>(RecentSearchService);
-    repository = module.get(getRepositoryToken(RecentSearch));
-    dataSource = module.get(DataSource);
   });
 
   afterEach(() => {
@@ -285,7 +281,7 @@ describe('RecentSearchService', () => {
       ];
       mockRepository.find.mockResolvedValue(searches);
 
-      const result = await service.getRecentSearches(mockUserId, 0, 20);
+      await service.getRecentSearches(mockUserId, 0, 20);
 
       expect(mockRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({

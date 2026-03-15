@@ -17,7 +17,6 @@ import {
 describe('MusicApiService', () => {
   let service: MusicApiService;
   let httpService: jest.Mocked<HttpService>;
-  let configService: jest.Mocked<ConfigService>;
 
   const mockBaseUrl = 'http://localhost:8000/api/v1';
   const mockTimeout = 30000;
@@ -69,7 +68,6 @@ describe('MusicApiService', () => {
 
     service = module.get<MusicApiService>(MusicApiService);
     httpService = module.get(HttpService);
-    configService = module.get(ConfigService);
   });
 
   afterEach(() => {
@@ -284,7 +282,14 @@ describe('MusicApiService', () => {
   // =====================
   describe('getStreamUrl', () => {
     it('should return stream URL with metadata', async () => {
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockStreamResponse)));
+      const mockedResponsePayload = {
+        streamUrl: mockStreamResponse.url,
+        title: mockStreamResponse.title,
+        artist: mockStreamResponse.artist,
+        duration: mockStreamResponse.duration,
+        thumbnail: mockStreamResponse.thumbnail,
+      };
+      httpService.get.mockReturnValue(of(createAxiosResponse(mockedResponsePayload)));
 
       const result = await service.getStreamUrl(mockVideoId);
 
@@ -300,12 +305,12 @@ describe('MusicApiService', () => {
     });
 
     it('should handle stream URL without optional fields', async () => {
-      const minimalResponse = { url: 'https://example.com/stream.mp3' };
+      const minimalResponse = { streamUrl: 'https://example.com/stream.mp3' };
       httpService.get.mockReturnValue(of(createAxiosResponse(minimalResponse)));
 
       const result = await service.getStreamUrl(mockVideoId);
 
-      expect(result.streamUrl).toBe(minimalResponse.url);
+      expect(result.streamUrl).toBe(minimalResponse.streamUrl);
       expect(result.title).toBeUndefined();
       expect(result.artist).toBeUndefined();
     });

@@ -43,7 +43,9 @@ describe('AuthController', () => {
             refreshToken: jest.fn(),
             logout: jest.fn(),
             loginWithGoogle: jest.fn(),
+            loginWithGoogleMobile: jest.fn(),
             loginWithApple: jest.fn(),
+            getProfile: jest.fn(),
           },
         },
       ],
@@ -217,6 +219,12 @@ describe('AuthController', () => {
         email: mockUserEmail,
         role: 'user',
       };
+
+      authService.getProfile.mockResolvedValue({
+        userId: mockUserId,
+        email: mockUserEmail,
+        role: 'user',
+      } as any);
 
       const result = await controller.getProfile(mockUserPayload);
 

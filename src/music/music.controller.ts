@@ -281,6 +281,10 @@ export class MusicController {
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getForYouContent(@CurrentUser() user: any) {
     try {
+      const cacheKey = `music_for_you:${user.userId}`;
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
+
       const [favoriteSongs, favoritePlaylists, favoriteGenres, exploreContent] = await Promise.all([
         this.libraryService.getFavoriteSongs(user.userId, 1, 5),
         this.libraryService.getFavoritePlaylists(user.userId, 1, 5),
@@ -304,12 +308,15 @@ export class MusicController {
         }
       }
 
-      return {
+      const data = {
         mixes: forYouMixes,
         favoriteSongs: favoriteSongs.data.slice(0, 10),
         favoritePlaylists: favoritePlaylists.data.slice(0, 5),
         exploreContent,
       };
+      
+      await this.cacheManager.set(cacheKey, data, 300000);
+      return data;
     } catch (error) {
       throw new HttpException('Failed to fetch for you content', HttpStatus.BAD_GATEWAY);
     }

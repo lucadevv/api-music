@@ -15,6 +15,7 @@ import { Genre } from '../../music/entities/genre.entity';
 @Unique(['userId', 'genreId'])
 @Index(['userId'])
 @Index(['genreId'])
+@Index(['userId', 'genreId'])
 export class FavoriteGenre {
   @PrimaryGeneratedColumn('uuid')
   id: string;

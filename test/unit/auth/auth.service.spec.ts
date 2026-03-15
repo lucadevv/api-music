@@ -2,12 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+
 import * as bcrypt from 'bcrypt';
 import { AuthService } from '../../../src/auth/auth.service';
+import { GoogleTokenService } from '../../../src/auth/services/google-token.service';
 import { UsersService } from '../../../src/users/users.service';
 import { RefreshToken } from '../../../src/common/entities/refresh-token.entity';
-import { User, AuthProvider, UserRole } from '../../../src/users/entities/user.entity';
+import { AuthProvider } from '../../../src/users/entities/user.entity';
 import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import {
   mockUser,
@@ -17,7 +18,6 @@ import {
   mockAppleUser,
   mockInactiveUser,
   mockRefreshTokenValue,
-  mockJwtPayload,
   mockGoogleProfile,
   mockAppleProfile,
 } from '../../utils/mocks';
@@ -29,7 +29,6 @@ describe('AuthService', () => {
   let usersService: jest.Mocked<UsersService>;
   let jwtService: jest.Mocked<JwtService>;
   let configService: jest.Mocked<ConfigService>;
-  let refreshTokenRepository: jest.Mocked<Repository<RefreshToken>>;
 
   const mockRefreshTokenRepo = {
     save: jest.fn(),
@@ -60,6 +59,13 @@ describe('AuthService', () => {
           },
         },
         {
+          provide: GoogleTokenService,
+          useValue: {
+            verifyIdToken: jest.fn(),
+            getProfileInfo: jest.fn(),
+          },
+        },
+        {
           provide: ConfigService,
           useValue: {
             get: jest.fn(),
@@ -75,8 +81,9 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     usersService = module.get(UsersService);
     jwtService = module.get(JwtService);
+    // googleTokenService = module.get(GoogleTokenService); // Removed: not declared as 'let' and not used
     configService = module.get(ConfigService);
-    refreshTokenRepository = module.get(getRepositoryToken(RefreshToken));
+    // refreshTokenRepository = module.get(getRepositoryToken(RefreshToken)); // Removed: not declared as 'let' and not used
 
     // Default config values
     configService.get.mockImplementation((key: string) => {

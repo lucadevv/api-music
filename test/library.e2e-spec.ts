@@ -6,7 +6,6 @@ import { AppModule } from '../src/app.module';
 describe('LibraryController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
-  let userId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,7 +29,6 @@ describe('LibraryController (e2e)', () => {
 
     if (registerResponse.status === 201) {
       accessToken = registerResponse.body.accessToken;
-      userId = registerResponse.body.user?.id;
     } else {
       // If registration fails, try login
       const loginResponse = await request(app.getHttpServer())
@@ -40,7 +38,6 @@ describe('LibraryController (e2e)', () => {
           password: 'password123',
         });
       accessToken = loginResponse.body.accessToken;
-      userId = loginResponse.body.user?.id;
     }
   });
 

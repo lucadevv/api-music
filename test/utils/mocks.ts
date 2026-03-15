@@ -27,7 +27,7 @@ export const mockUserId = '123e4567-e89b-12d3-a456-426614174000';
 export const mockUserEmail = 'test@example.com';
 export const mockHashedPassword = '$2b$10$abcdefghijklmnopqrstuvwxyz123456';
 
-export const mockUser: User = {
+export const mockUser = {
   id: mockUserId,
   email: mockUserEmail,
   password: mockHashedPassword,
@@ -42,7 +42,7 @@ export const mockUser: User = {
   lastLoginAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
-};
+} as unknown as User;
 
 export const mockAdminUser: User = {
   ...mockUser,
@@ -110,7 +110,7 @@ export const mockExpiredRefreshToken: RefreshToken = {
 export const mockSongId = '123e4567-e89b-12d3-a456-426614174020';
 export const mockVideoId = 'abc123defgh';
 
-export const mockSong: Song = {
+export const mockSong = {
   id: mockSongId,
   videoId: mockVideoId,
   title: 'Test Song',
@@ -126,9 +126,9 @@ export const mockSong: Song = {
   isActive: true,
   createdAt: new Date(),
   updatedAt: new Date(),
-};
+} as unknown as Song;
 
-export const mockSongMinimal: Song = {
+export const mockSongMinimal = {
   id: '123e4567-e89b-12d3-a456-426614174021',
   videoId: 'xyz789video',
   title: 'Song xyz789video',
@@ -144,7 +144,7 @@ export const mockSongMinimal: Song = {
   isActive: true,
   createdAt: new Date(),
   updatedAt: new Date(),
-};
+} as unknown as Song;
 
 // =====================
 // PLAYLIST MOCKS
@@ -153,7 +153,7 @@ export const mockSongMinimal: Song = {
 export const mockPlaylistId = '123e4567-e89b-12d3-a456-426614174030';
 export const mockExternalPlaylistId = 'PL1234567890';
 
-export const mockPlaylist: Playlist = {
+export const mockPlaylist = {
   id: mockPlaylistId,
   externalPlaylistId: mockExternalPlaylistId,
   name: 'Test Playlist',
@@ -168,7 +168,7 @@ export const mockPlaylist: Playlist = {
   isActive: true,
   createdAt: new Date(),
   updatedAt: new Date(),
-};
+} as unknown as Playlist;
 
 // =====================
 // GENRE MOCKS
@@ -229,14 +229,14 @@ export const mockFavoriteSong: FavoriteSong = {
 
 export const mockFavoritePlaylistId = '123e4567-e89b-12d3-a456-426614174061';
 
-export const mockFavoritePlaylist: FavoritePlaylist = {
+export const mockFavoritePlaylist = {
   id: mockFavoritePlaylistId,
   userId: mockUserId,
   user: mockUser,
   playlistId: mockPlaylistId,
   playlist: mockPlaylist,
   createdAt: new Date(),
-};
+} as unknown as FavoritePlaylist;
 
 export const mockFavoriteGenreId = '123e4567-e89b-12d3-a456-426614174062';
 

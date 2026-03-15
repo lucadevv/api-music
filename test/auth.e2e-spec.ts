@@ -7,7 +7,6 @@ describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
   let refreshToken: string;
-  let userId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -43,7 +42,6 @@ describe('AuthController (e2e)', () => {
           expect(res.body.user.email).toBe(uniqueEmail);
           accessToken = res.body.accessToken;
           refreshToken = res.body.refreshToken;
-          userId = res.body.user.id;
         });
     });
 
@@ -194,7 +192,7 @@ describe('AuthController (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body).toHaveProperty('userId');
+          expect(res.body).toHaveProperty('id');
           expect(res.body).toHaveProperty('email');
           expect(res.body).toHaveProperty('role');
           expect(res.body.email).toBe(meEmail);

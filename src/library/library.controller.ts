@@ -9,7 +9,10 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  Inject,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import {
   ApiTags,
   ApiOperation,
@@ -33,6 +36,7 @@ export class LibraryController {
   constructor(
     private readonly libraryService: LibraryService,
     private readonly musicApiService: MusicApiService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @Post('songs')
@@ -400,7 +404,13 @@ export class LibraryController {
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async getLibrarySummary(@CurrentUser() user: any) {
-    return this.libraryService.getLibrarySummary(user.userId);
+    const cacheKey = `library_summary:${user.userId}`;
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const data = await this.libraryService.getLibrarySummary(user.userId);
+    await this.cacheManager.set(cacheKey, data, 120000);
+    return data;
   }
 
   // ============ User Playlists (Playlists creadas por el usuario) ============
