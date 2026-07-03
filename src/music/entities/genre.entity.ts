@@ -9,7 +9,10 @@ import {
 
 @Entity('genres')
 @Index(['name'], { unique: true })
-@Index(['externalParams'], { unique: true, where: '"externalParams" IS NOT NULL' })
+@Index(['externalParams'], {
+  unique: true,
+  where: '"externalParams" IS NOT NULL',
+})
 export class Genre {
   @PrimaryGeneratedColumn('uuid')
   id: string;

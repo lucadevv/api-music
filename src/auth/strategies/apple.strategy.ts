@@ -13,7 +13,9 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
     const clientId = configService.get<string>('oauth.apple.clientId') || '';
     const teamId = configService.get<string>('oauth.apple.teamId') || '';
     const keyId = configService.get<string>('oauth.apple.keyId') || '';
-    const callbackURL = configService.get<string>('oauth.apple.callbackURL') || '/api/auth/apple/callback';
+    const callbackURL =
+      configService.get<string>('oauth.apple.callbackURL') ||
+      '/api/auth/apple/callback';
 
     // passport-apple requires keyFilePath, not privateKey directly
     // For now, we'll use a type assertion to bypass the typing issue
@@ -40,7 +42,9 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
         Buffer.from(idToken.split('.')[1], 'base64').toString(),
       );
 
-      const profileObj = profile as { name?: { firstName?: string; lastName?: string } };
+      const profileObj = profile as {
+        name?: { firstName?: string; lastName?: string };
+      };
 
       const appleProfile = {
         id: decoded.sub,

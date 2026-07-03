@@ -102,15 +102,18 @@ export class AuthController {
     }
 
     if (!oauthDto.idToken && !oauthDto.accessToken) {
-      throw new BadRequestException('ID token or access token is required for Google OAuth');
+      throw new BadRequestException(
+        'ID token or access token is required for Google OAuth',
+      );
     }
 
-    const { response, isNewUser } = await this.authService.loginWithGoogleMobile(
-      oauthDto.idToken,
-      oauthDto.accessToken,
-      oauthDto.email,
-      oauthDto.name,
-    );
+    const { response, isNewUser } =
+      await this.authService.loginWithGoogleMobile(
+        oauthDto.idToken,
+        oauthDto.accessToken,
+        oauthDto.email,
+        oauthDto.name,
+      );
 
     return {
       ...response,
@@ -146,7 +149,10 @@ export class AuthController {
     description: 'Token renovado exitosamente',
     type: AuthResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Refresh token inválido o expirado' })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh token inválido o expirado',
+  })
   async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }

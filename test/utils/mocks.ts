@@ -1,4 +1,8 @@
-import { User, AuthProvider, UserRole } from '../../src/users/entities/user.entity';
+import {
+  User,
+  AuthProvider,
+  UserRole,
+} from '../../src/users/entities/user.entity';
 import { RefreshToken } from '../../src/common/entities/refresh-token.entity';
 import { Song } from '../../src/music/entities/song.entity';
 import { Playlist } from '../../src/music/entities/playlist.entity';
@@ -82,9 +86,11 @@ export const mockInactiveUser: User = {
 // REFRESH TOKEN MOCKS
 // =====================
 
-export const mockRefreshTokenValue = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2';
+export const mockRefreshTokenValue =
+  'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2';
 // SHA256 hash of mockRefreshTokenValue (first 64 chars)
-export const mockTokenHash = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2a1b2c3d4e5f6g7h8';
+export const mockTokenHash =
+  'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2a1b2c3d4e5f6g7h8';
 
 export const mockRefreshToken: RefreshToken = {
   id: '123e4567-e89b-12d3-a456-426614174010',
@@ -310,7 +316,9 @@ export const mockSearchResponse = {
       duration: '3:00',
       duration_seconds: 180,
       views: '1M',
-      thumbnails: [{ url: 'https://example.com/thumb.jpg', width: 120, height: 120 }],
+      thumbnails: [
+        { url: 'https://example.com/thumb.jpg', width: 120, height: 120 },
+      ],
       thumbnail: 'https://example.com/thumb.jpg',
       stream_url: 'https://example.com/stream.mp3',
       category: 'Songs',

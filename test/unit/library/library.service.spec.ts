@@ -133,11 +133,15 @@ describe('LibraryService', () => {
       favoriteSongRepo.create.mockReturnValue(mockFavoriteSong);
       favoriteSongRepo.save.mockResolvedValue(mockFavoriteSong);
       songRepo.increment.mockResolvedValue({} as any);
-      favoriteSongRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteSong);
+      favoriteSongRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteSong);
 
       await service.addFavoriteSong(mockUserId, undefined, mockVideoId);
 
-      expect(songRepo.findOne).toHaveBeenCalledWith({ where: { videoId: mockVideoId } });
+      expect(songRepo.findOne).toHaveBeenCalledWith({
+        where: { videoId: mockVideoId },
+      });
       expect(songRepo.create).toHaveBeenCalled();
       expect(favoriteSongRepo.save).toHaveBeenCalled();
     });
@@ -148,34 +152,38 @@ describe('LibraryService', () => {
       favoriteSongRepo.create.mockReturnValue(mockFavoriteSong);
       favoriteSongRepo.save.mockResolvedValue(mockFavoriteSong);
       songRepo.increment.mockResolvedValue({} as any);
-      favoriteSongRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteSong);
+      favoriteSongRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteSong);
 
       await service.addFavoriteSong(mockUserId, mockSongId);
 
-      expect(songRepo.findOne).toHaveBeenCalledWith({ where: { id: mockSongId } });
+      expect(songRepo.findOne).toHaveBeenCalledWith({
+        where: { id: mockSongId },
+      });
     });
 
     it('should throw BadRequestException when neither songId nor videoId provided', async () => {
-      await expect(service.addFavoriteSong(mockUserId))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(service.addFavoriteSong(mockUserId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when song not found by songId', async () => {
       songRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.addFavoriteSong(mockUserId, 'nonexistent-id'))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.addFavoriteSong(mockUserId, 'nonexistent-id'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when song already in favorites', async () => {
       songRepo.findOne.mockResolvedValue(mockSong);
       favoriteSongRepo.findOne.mockResolvedValue(mockFavoriteSong);
 
-      await expect(service.addFavoriteSong(mockUserId, mockSongId))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(
+        service.addFavoriteSong(mockUserId, mockSongId),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should increment likeCount when adding favorite', async () => {
@@ -184,11 +192,17 @@ describe('LibraryService', () => {
       favoriteSongRepo.create.mockReturnValue(mockFavoriteSong);
       favoriteSongRepo.save.mockResolvedValue(mockFavoriteSong);
       songRepo.increment.mockResolvedValue({} as any);
-      favoriteSongRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteSong);
+      favoriteSongRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteSong);
 
       await service.addFavoriteSong(mockUserId, mockSongId);
 
-      expect(songRepo.increment).toHaveBeenCalledWith({ id: mockSongId }, 'likeCount', 1);
+      expect(songRepo.increment).toHaveBeenCalledWith(
+        { id: mockSongId },
+        'likeCount',
+        1,
+      );
     });
 
     it('should use existing song when videoId matches', async () => {
@@ -198,7 +212,9 @@ describe('LibraryService', () => {
       favoriteSongRepo.create.mockReturnValue(mockFavoriteSong);
       favoriteSongRepo.save.mockResolvedValue(mockFavoriteSong);
       songRepo.increment.mockResolvedValue({} as any);
-      favoriteSongRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteSong);
+      favoriteSongRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteSong);
 
       await service.addFavoriteSong(mockUserId, undefined, mockVideoId);
 
@@ -226,9 +242,9 @@ describe('LibraryService', () => {
     it('should throw NotFoundException when song not in favorites', async () => {
       favoriteSongRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeFavoriteSong(mockUserId, mockSongId))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.removeFavoriteSong(mockUserId, mockSongId),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should decrement likeCount when removing favorite', async () => {
@@ -238,7 +254,11 @@ describe('LibraryService', () => {
 
       await service.removeFavoriteSong(mockUserId, mockSongId);
 
-      expect(songRepo.decrement).toHaveBeenCalledWith({ id: mockSongId }, 'likeCount', 1);
+      expect(songRepo.decrement).toHaveBeenCalledWith(
+        { id: mockSongId },
+        'likeCount',
+        1,
+      );
     });
   });
 
@@ -330,11 +350,15 @@ describe('LibraryService', () => {
       favoritePlaylistRepo.create.mockReturnValue(mockFavoritePlaylist);
       favoritePlaylistRepo.save.mockResolvedValue(mockFavoritePlaylist);
       playlistRepo.increment.mockResolvedValue({} as any);
-      favoritePlaylistRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoritePlaylist);
+      favoritePlaylistRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoritePlaylist);
 
       await service.addFavoritePlaylist(mockUserId, mockPlaylistId);
 
-      expect(playlistRepo.findOne).toHaveBeenCalledWith({ where: { id: mockPlaylistId } });
+      expect(playlistRepo.findOne).toHaveBeenCalledWith({
+        where: { id: mockPlaylistId },
+      });
     });
 
     it('should add playlist to favorites with externalPlaylistId', async () => {
@@ -348,34 +372,40 @@ describe('LibraryService', () => {
       favoritePlaylistRepo.create.mockReturnValue(mockFavoritePlaylist);
       favoritePlaylistRepo.save.mockResolvedValue(mockFavoritePlaylist);
       playlistRepo.increment.mockResolvedValue({} as any);
-      favoritePlaylistRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoritePlaylist);
+      favoritePlaylistRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoritePlaylist);
 
-      await service.addFavoritePlaylist(mockUserId, undefined, mockExternalPlaylistId);
+      await service.addFavoritePlaylist(
+        mockUserId,
+        undefined,
+        mockExternalPlaylistId,
+      );
 
       expect(playlistRepo.save).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when neither playlistId nor externalPlaylistId provided', async () => {
-      await expect(service.addFavoritePlaylist(mockUserId))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(service.addFavoritePlaylist(mockUserId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when playlist not found', async () => {
       playlistRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.addFavoritePlaylist(mockUserId, 'nonexistent-id'))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.addFavoritePlaylist(mockUserId, 'nonexistent-id'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when playlist already in favorites', async () => {
       playlistRepo.findOne.mockResolvedValue(mockPlaylist);
       favoritePlaylistRepo.findOne.mockResolvedValue(mockFavoritePlaylist);
 
-      await expect(service.addFavoritePlaylist(mockUserId, mockPlaylistId))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(
+        service.addFavoritePlaylist(mockUserId, mockPlaylistId),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should create basic playlist when external API fails', async () => {
@@ -387,9 +417,15 @@ describe('LibraryService', () => {
       favoritePlaylistRepo.create.mockReturnValue(mockFavoritePlaylist);
       favoritePlaylistRepo.save.mockResolvedValue(mockFavoritePlaylist);
       playlistRepo.increment.mockResolvedValue({} as any);
-      favoritePlaylistRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoritePlaylist);
+      favoritePlaylistRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoritePlaylist);
 
-      await service.addFavoritePlaylist(mockUserId, undefined, mockExternalPlaylistId);
+      await service.addFavoritePlaylist(
+        mockUserId,
+        undefined,
+        mockExternalPlaylistId,
+      );
 
       // Should create a basic playlist with default name
       expect(playlistRepo.create).toHaveBeenCalled();
@@ -407,16 +443,22 @@ describe('LibraryService', () => {
 
       await service.removeFavoritePlaylist(mockUserId, mockPlaylistId);
 
-      expect(favoritePlaylistRepo.remove).toHaveBeenCalledWith(mockFavoritePlaylist);
-      expect(playlistRepo.decrement).toHaveBeenCalledWith({ id: mockPlaylistId }, 'likeCount', 1);
+      expect(favoritePlaylistRepo.remove).toHaveBeenCalledWith(
+        mockFavoritePlaylist,
+      );
+      expect(playlistRepo.decrement).toHaveBeenCalledWith(
+        { id: mockPlaylistId },
+        'likeCount',
+        1,
+      );
     });
 
     it('should throw NotFoundException when playlist not in favorites', async () => {
       favoritePlaylistRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeFavoritePlaylist(mockUserId, mockPlaylistId))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.removeFavoritePlaylist(mockUserId, mockPlaylistId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -426,7 +468,7 @@ describe('LibraryService', () => {
   describe('getFavoritePlaylists', () => {
     it('should return paginated favorite playlists', async () => {
       const favorites = [mockFavoritePlaylist];
-      
+
       const qbMock = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -439,7 +481,9 @@ describe('LibraryService', () => {
 
       const result = await service.getFavoritePlaylists(mockUserId, 1, 20);
 
-      expect(favoritePlaylistRepo.createQueryBuilder).toHaveBeenCalledWith('fp');
+      expect(favoritePlaylistRepo.createQueryBuilder).toHaveBeenCalledWith(
+        'fp',
+      );
       expect(result.data).toEqual(favorites);
       expect(result.total).toBe(1);
     });
@@ -469,7 +513,10 @@ describe('LibraryService', () => {
     it('should return true when playlist is favorite', async () => {
       favoritePlaylistRepo.findOne.mockResolvedValue(mockFavoritePlaylist);
 
-      const result = await service.isPlaylistFavorite(mockUserId, mockPlaylistId);
+      const result = await service.isPlaylistFavorite(
+        mockUserId,
+        mockPlaylistId,
+      );
 
       expect(result).toBe(true);
     });
@@ -477,7 +524,10 @@ describe('LibraryService', () => {
     it('should return false when playlist is not favorite', async () => {
       favoritePlaylistRepo.findOne.mockResolvedValue(null);
 
-      const result = await service.isPlaylistFavorite(mockUserId, mockPlaylistId);
+      const result = await service.isPlaylistFavorite(
+        mockUserId,
+        mockPlaylistId,
+      );
 
       expect(result).toBe(false);
     });
@@ -492,8 +542,10 @@ describe('LibraryService', () => {
       favoriteGenreRepo.findOne.mockResolvedValue(null);
       favoriteGenreRepo.create.mockReturnValue(mockFavoriteGenre);
       favoriteGenreRepo.save.mockResolvedValue(mockFavoriteGenre);
-      favoriteGenreRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteGenre);
-      
+      favoriteGenreRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteGenre);
+
       const qbMock = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
@@ -503,7 +555,9 @@ describe('LibraryService', () => {
 
       await service.addFavoriteGenre(mockUserId, mockGenreId);
 
-      expect(genreRepo.findOne).toHaveBeenCalledWith({ where: { id: mockGenreId } });
+      expect(genreRepo.findOne).toHaveBeenCalledWith({
+        where: { id: mockGenreId },
+      });
     });
 
     it('should add genre to favorites with externalParams', async () => {
@@ -513,7 +567,9 @@ describe('LibraryService', () => {
       favoriteGenreRepo.findOne.mockResolvedValue(null);
       favoriteGenreRepo.create.mockReturnValue(mockFavoriteGenre);
       favoriteGenreRepo.save.mockResolvedValue(mockFavoriteGenre);
-      favoriteGenreRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteGenre);
+      favoriteGenreRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteGenre);
 
       await service.addFavoriteGenre(
         mockUserId,
@@ -529,26 +585,26 @@ describe('LibraryService', () => {
     });
 
     it('should throw BadRequestException when neither genreId nor externalParams provided', async () => {
-      await expect(service.addFavoriteGenre(mockUserId))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(service.addFavoriteGenre(mockUserId)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when genre not found', async () => {
       genreRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.addFavoriteGenre(mockUserId, 'nonexistent-id'))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.addFavoriteGenre(mockUserId, 'nonexistent-id'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when genre already in favorites', async () => {
       genreRepo.findOne.mockResolvedValue(mockGenre);
       favoriteGenreRepo.findOne.mockResolvedValue(mockFavoriteGenre);
 
-      await expect(service.addFavoriteGenre(mockUserId, mockGenreId))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(
+        service.addFavoriteGenre(mockUserId, mockGenreId),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should use existing genre when externalParams matches', async () => {
@@ -556,7 +612,9 @@ describe('LibraryService', () => {
       favoriteGenreRepo.findOne.mockResolvedValue(null);
       favoriteGenreRepo.create.mockReturnValue(mockFavoriteGenre);
       favoriteGenreRepo.save.mockResolvedValue(mockFavoriteGenre);
-      favoriteGenreRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(mockFavoriteGenre);
+      favoriteGenreRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(mockFavoriteGenre);
 
       const qbMock = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
@@ -587,9 +645,9 @@ describe('LibraryService', () => {
     it('should throw NotFoundException when genre not in favorites', async () => {
       favoriteGenreRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.removeFavoriteGenre(mockUserId, mockGenreId))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.removeFavoriteGenre(mockUserId, mockGenreId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -698,9 +756,15 @@ describe('LibraryService', () => {
 
       await service.getLibrarySummary(mockUserId);
 
-      expect(favoriteSongRepo.count).toHaveBeenCalledWith({ where: { userId: mockUserId } });
-      expect(favoritePlaylistRepo.count).toHaveBeenCalledWith({ where: { userId: mockUserId } });
-      expect(favoriteGenreRepo.count).toHaveBeenCalledWith({ where: { userId: mockUserId } });
+      expect(favoriteSongRepo.count).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+      });
+      expect(favoritePlaylistRepo.count).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+      });
+      expect(favoriteGenreRepo.count).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+      });
     });
   });
 });

@@ -34,7 +34,15 @@ import { SharedModule } from './shared/shared.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Disponible en toda la aplicación sin importar
-      load: [appConfig, databaseConfig, redisConfig, jwtConfig, oauthConfig, externalApiConfig, throttlerConfig],
+      load: [
+        appConfig,
+        databaseConfig,
+        redisConfig,
+        jwtConfig,
+        oauthConfig,
+        externalApiConfig,
+        throttlerConfig,
+      ],
       validationSchema,
       validationOptions: {
         abortEarly: true, // Detener en el primer error
@@ -108,7 +116,8 @@ import { SharedModule } from './shared/shared.module';
           FavoriteGenre,
           UserListenHistory,
         ],
-        synchronize: configService.get<string>('app.environment') === 'development',
+        synchronize:
+          configService.get<string>('app.environment') === 'development',
         logging: false,
         retryAttempts: 3,
         retryDelay: 3000,
@@ -139,4 +148,4 @@ import { SharedModule } from './shared/shared.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

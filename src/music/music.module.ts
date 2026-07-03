@@ -15,26 +15,32 @@ import { ListenHistoryService } from './services/listen-history.service';
 import { LibraryModule } from '../library/library.module';
 
 @Module({
-    imports: [
-        HttpModule.register({
-            timeout: 60000,
-            maxRedirects: 5,
-        }),
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('jwt.secret') || 'default-secret',
-                signOptions: { 
-                    expiresIn: 3600 * 24 * 7, // 7 days in seconds
-                },
-            }),
-        }),
-        TypeOrmModule.forFeature([Song, Playlist, Genre, RecentSearch, UserListenHistory]),
-        LibraryModule,
-    ],
-    controllers: [MusicController],
-    providers: [MusicApiService, RecentSearchService, ListenHistoryService],
-    exports: [MusicApiService, RecentSearchService, ListenHistoryService],
+  imports: [
+    HttpModule.register({
+      timeout: 60000,
+      maxRedirects: 5,
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('jwt.secret') || 'default-secret',
+        signOptions: {
+          expiresIn: 3600 * 24 * 7, // 7 days in seconds
+        },
+      }),
+    }),
+    TypeOrmModule.forFeature([
+      Song,
+      Playlist,
+      Genre,
+      RecentSearch,
+      UserListenHistory,
+    ]),
+    LibraryModule,
+  ],
+  controllers: [MusicController],
+  providers: [MusicApiService, RecentSearchService, ListenHistoryService],
+  exports: [MusicApiService, RecentSearchService, ListenHistoryService],
 })
 export class MusicModule {}

@@ -24,7 +24,10 @@ export class ListenHistoryService {
   /**
    * Registra una reproducción en el historial
    */
-  async recordListen(userId: string, videoId: string): Promise<UserListenHistory | null> {
+  async recordListen(
+    userId: string,
+    videoId: string,
+  ): Promise<UserListenHistory | null> {
     if (!videoId) {
       this.logger.warn('videoId is null or empty, skipping recordListen');
       return null;
@@ -32,7 +35,7 @@ export class ListenHistoryService {
 
     // Buscar la canción por videoId
     let song = await this.songRepository.findOne({ where: { videoId } });
-    
+
     // Si la canción no existe, crearla con datos básicos del videoId
     if (!song) {
       this.logger.debug(`Creating new song entry for videoId: ${videoId}`);
@@ -56,8 +59,10 @@ export class ListenHistoryService {
     });
 
     const savedHistory = await this.listenHistoryRepository.save(history);
-    this.logger.debug(`Created history record: id=${savedHistory.id}, userId=${userId}, songId=${song.id}`);
-    
+    this.logger.debug(
+      `Created history record: id=${savedHistory.id}, userId=${userId}, songId=${song.id}`,
+    );
+
     // Invalidar TODOS los cache de recently-listened para este usuario (diferentes query params)
     // El cache-manager de NestJS no soporta wildcards, así que invalidamos los más comunes
     const cacheKeys = [
@@ -70,7 +75,7 @@ export class ListenHistoryService {
       await this.cacheManager.del(key).catch(() => {});
     }
     this.logger.debug(`Cache invalidated for userId=${userId}`);
-    
+
     return savedHistory;
   }
 
@@ -84,7 +89,9 @@ export class ListenHistoryService {
     limit: number = 20,
     startIndex: number = 0,
   ): Promise<{ songs: Song[]; total: number }> {
-    this.logger.debug(`Fetching recently listened for userId=${userId}, limit=${limit}, offset=${startIndex}`);
+    this.logger.debug(
+      `Fetching recently listened for userId=${userId}, limit=${limit}, offset=${startIndex}`,
+    );
 
     // Obtenemos el total de canciones únicas escuchadas por el usuario
     const countQuery = await this.listenHistoryRepository
@@ -92,7 +99,7 @@ export class ListenHistoryService {
       .select('COUNT(DISTINCT history.songId)', 'count')
       .where('history.userId = :userId', { userId })
       .getRawOne();
-      
+
     const totalUnique = parseInt(countQuery.count, 10) || 0;
 
     if (totalUnique === 0) {
@@ -116,8 +123,8 @@ export class ListenHistoryService {
       return { songs: [], total: totalUnique };
     }
 
-    const songIds = recentSongsIdsWithDates.map(record => record.songId);
-    
+    const songIds = recentSongsIdsWithDates.map((record) => record.songId);
+
     // Obtenemos los detalles de las canciones
     const songs = await this.songRepository
       .createQueryBuilder('song')
@@ -125,9 +132,9 @@ export class ListenHistoryService {
       .getMany();
 
     // Mantenemos el orden devuelto por la consulta agrupada
-    const orderedSongs = recentSongsIdsWithDates.map(record => 
-      songs.find(s => s.id === record.songId)
-    ).filter((s): s is Song => !!s);
+    const orderedSongs = recentSongsIdsWithDates
+      .map((record) => songs.find((s) => s.id === record.songId))
+      .filter((s): s is Song => !!s);
 
     return { songs: orderedSongs, total: totalUnique };
   }
@@ -141,29 +148,38 @@ export class ListenHistoryService {
     limit: number = 20,
     startIndex: number = 0,
   ): Promise<{ songs: any[]; total: number }> {
-    const { songs, total } = await this.getRecentlyListened(userId, limit, startIndex);
+    const { songs, total } = await this.getRecentlyListened(
+      userId,
+      limit,
+      startIndex,
+    );
 
     const videoIds = songs
       .map((s) => s.videoId)
       .filter((v): v is string => !!v);
 
-    let streamUrlsMap: Record<string, string> = {};
+    const streamUrlsMap: Record<string, string> = {};
     if (videoIds.length > 0) {
       try {
-        const streams = await this.musicApiService.getBatchStreamUrls(videoIds);
+        const streams = await this.musicApiService.getBatchStreamUrls(
+          videoIds,
+          true,
+        );
         streams.results.forEach((s) => {
           if (s.url) {
             streamUrlsMap[s.videoId] = s.url;
           }
         });
       } catch (e) {
-        this.logger.warn('Failed to fetch batch stream URLs, continuing without them');
+        this.logger.warn(
+          'Failed to fetch batch stream URLs, continuing without them',
+        );
       }
     }
 
     const songsWithStreams = songs.map((song) => ({
       ...song,
-      stream_url: song.videoId ? streamUrlsMap[song.videoId] : undefined,
+      streamUrl: song.videoId ? streamUrlsMap[song.videoId] : undefined,
     }));
 
     return { songs: songsWithStreams, total };
@@ -185,7 +201,7 @@ export class ListenHistoryService {
 
     const seen = new Set<string>();
     const songIds: string[] = [];
-    
+
     for (const record of records) {
       if (record.songId && !seen.has(record.songId)) {
         seen.add(record.songId);

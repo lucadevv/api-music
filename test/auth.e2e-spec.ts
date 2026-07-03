@@ -75,7 +75,7 @@ describe('AuthController (e2e)', () => {
           password: 'password123',
         })
         .expect(201);
-      
+
       // Second registration with same email should fail
       return request(app.getHttpServer())
         .post('/api/auth/register')
@@ -98,7 +98,7 @@ describe('AuthController (e2e)', () => {
           password: 'password123',
         })
         .expect(201);
-      
+
       // Then login
       return request(app.getHttpServer())
         .post('/api/auth/login')
@@ -125,7 +125,7 @@ describe('AuthController (e2e)', () => {
           password: 'password123',
         })
         .expect(201);
-      
+
       // Then try to login with wrong password
       return request(app.getHttpServer())
         .post('/api/auth/login')
@@ -184,9 +184,9 @@ describe('AuthController (e2e)', () => {
           lastName: 'Test',
         })
         .expect(201);
-      
+
       const token = registerResponse.body.accessToken;
-      
+
       return request(app.getHttpServer())
         .get('/api/auth/me')
         .set('Authorization', `Bearer ${token}`)
@@ -200,9 +200,7 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should fail without token', () => {
-      return request(app.getHttpServer())
-        .get('/api/auth/me')
-        .expect(401);
+      return request(app.getHttpServer()).get('/api/auth/me').expect(401);
     });
 
     it('should fail with invalid token', () => {

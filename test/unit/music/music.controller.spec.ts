@@ -106,9 +106,7 @@ describe('MusicController', () => {
     it('should throw BAD_GATEWAY on service error', async () => {
       musicApiService.explore.mockRejectedValue(new Error('Service error'));
 
-      await expect(controller.explore())
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.explore()).rejects.toThrow(HttpException);
     });
   });
 
@@ -127,11 +125,13 @@ describe('MusicController', () => {
     });
 
     it('should throw BAD_GATEWAY on service error', async () => {
-      musicApiService.getMoodPlaylists.mockRejectedValue(new Error('Service error'));
+      musicApiService.getMoodPlaylists.mockRejectedValue(
+        new Error('Service error'),
+      );
 
-      await expect(controller.getMoodPlaylists('relax'))
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.getMoodPlaylists('relax')).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -150,11 +150,13 @@ describe('MusicController', () => {
     });
 
     it('should throw BAD_GATEWAY on service error', async () => {
-      musicApiService.getGenrePlaylists.mockRejectedValue(new Error('Service error'));
+      musicApiService.getGenrePlaylists.mockRejectedValue(
+        new Error('Service error'),
+      );
 
-      await expect(controller.getGenrePlaylists('pop'))
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.getGenrePlaylists('pop')).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -167,16 +169,20 @@ describe('MusicController', () => {
 
       const result = await controller.getPlaylist('playlist123');
 
-      expect(musicApiService.getPlaylist).toHaveBeenCalledWith('playlist123', 0, 20);
+      expect(musicApiService.getPlaylist).toHaveBeenCalledWith(
+        'playlist123',
+        0,
+        20,
+      );
       expect(result).toEqual(mockPlaylistResponse);
     });
 
     it('should throw BAD_GATEWAY on service error', async () => {
       musicApiService.getPlaylist.mockRejectedValue(new Error('Service error'));
 
-      await expect(controller.getPlaylist('playlist123'))
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.getPlaylist('playlist123')).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -185,29 +191,40 @@ describe('MusicController', () => {
   // =====================
   describe('getStreamUrl', () => {
     it('should return stream URL with metadata', async () => {
-      musicApiService.getStreamUrl.mockResolvedValue({ streamUrl: 'abc', proxyUrl: 'def' } as any);
+      musicApiService.getStreamUrl.mockResolvedValue({
+        streamUrl: 'abc',
+        proxyUrl: 'def',
+      } as any);
 
       const result = await controller.getStreamUrl(mockVideoId);
 
-      expect(musicApiService.getStreamUrl).toHaveBeenCalledWith(mockVideoId, false);
+      expect(musicApiService.getStreamUrl).toHaveBeenCalledWith(
+        mockVideoId,
+        false,
+      );
       expect(result).toEqual({ streamUrl: 'abc', proxyUrl: 'def' });
     });
 
     it('should re-throw HttpException from service', async () => {
-      const httpException = new HttpException('Timeout', HttpStatus.GATEWAY_TIMEOUT);
+      const httpException = new HttpException(
+        'Timeout',
+        HttpStatus.GATEWAY_TIMEOUT,
+      );
       musicApiService.getStreamUrl.mockRejectedValue(httpException);
 
-      await expect(controller.getStreamUrl(mockVideoId))
-        .rejects
-        .toThrow(httpException);
+      await expect(controller.getStreamUrl(mockVideoId)).rejects.toThrow(
+        httpException,
+      );
     });
 
     it('should throw BAD_GATEWAY on generic error', async () => {
-      musicApiService.getStreamUrl.mockRejectedValue(new Error('Generic error'));
+      musicApiService.getStreamUrl.mockRejectedValue(
+        new Error('Generic error'),
+      );
 
-      await expect(controller.getStreamUrl(mockVideoId))
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.getStreamUrl(mockVideoId)).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 
@@ -219,25 +236,36 @@ describe('MusicController', () => {
       musicApiService.search.mockResolvedValue(mockSearchResponse);
       recentSearchService.saveSearch.mockResolvedValue(mockRecentSearch);
 
-      const result = await controller.search('test query', 'songs', 0, 20, mockUser as any);
+      const result = await controller.search(
+        'test query',
+        'songs',
+        0,
+        20,
+        mockUser as any,
+      );
 
-      expect(musicApiService.search).toHaveBeenCalledWith('test query', 'songs', 0, 20);
+      expect(musicApiService.search).toHaveBeenCalledWith(
+        'test query',
+        'songs',
+        0,
+        20,
+      );
       expect(recentSearchService.saveSearch).toHaveBeenCalled();
       expect(result).toEqual(mockSearchResponse);
     });
 
     it('should throw BAD_REQUEST when query is empty', async () => {
-      await expect(controller.search('', 'songs', 0, 20, mockUser as any))
-        .rejects
-        .toThrow(HttpException);
+      await expect(
+        controller.search('', 'songs', 0, 20, mockUser as any),
+      ).rejects.toThrow(HttpException);
     });
 
     it('should throw BAD_GATEWAY on service error', async () => {
       musicApiService.search.mockRejectedValue(new Error('Service error'));
 
-      await expect(controller.search('test', 'songs', 0, 20, mockUser as any))
-        .rejects
-        .toThrow(HttpException);
+      await expect(
+        controller.search('test', 'songs', 0, 20, mockUser as any),
+      ).rejects.toThrow(HttpException);
     });
 
     it('should use default filter when not provided', async () => {
@@ -246,7 +274,12 @@ describe('MusicController', () => {
 
       await controller.search('test query', 'songs', 0, 20, mockUser as any);
 
-      expect(musicApiService.search).toHaveBeenCalledWith('test query', 'songs', 0, 20);
+      expect(musicApiService.search).toHaveBeenCalledWith(
+        'test query',
+        'songs',
+        0,
+        20,
+      );
     });
 
     it('should handle empty search results', async () => {
@@ -254,7 +287,13 @@ describe('MusicController', () => {
       musicApiService.search.mockResolvedValue(emptyResponse);
       recentSearchService.saveSearch.mockResolvedValue(mockRecentSearch);
 
-      const result = await controller.search('nonexistent', 'songs', 0, 20, mockUser as any);
+      const result = await controller.search(
+        'nonexistent',
+        'songs',
+        0,
+        20,
+        mockUser as any,
+      );
 
       expect(result.results).toEqual([]);
     });
@@ -265,16 +304,24 @@ describe('MusicController', () => {
   // =====================
   describe('getRecentSearches', () => {
     it('should return recent searches with default limit', async () => {
-      recentSearchService.getRecentSearches.mockResolvedValue([mockRecentSearch]);
+      recentSearchService.getRecentSearches.mockResolvedValue([
+        mockRecentSearch,
+      ]);
 
       const result = await controller.getRecentSearches(mockUser as any, 10);
 
-      expect(recentSearchService.getRecentSearches).toHaveBeenCalledWith(mockUserId, 10, 10);
+      expect(recentSearchService.getRecentSearches).toHaveBeenCalledWith(
+        mockUserId,
+        10,
+        10,
+      );
       expect(result).toHaveLength(1);
     });
 
     it('should return mapped search results without sensitive data', async () => {
-      recentSearchService.getRecentSearches.mockResolvedValue([mockRecentSearch]);
+      recentSearchService.getRecentSearches.mockResolvedValue([
+        mockRecentSearch,
+      ]);
 
       const result = await controller.getRecentSearches(mockUser as any, 10);
 
@@ -300,9 +347,15 @@ describe('MusicController', () => {
     it('should delete specific search', async () => {
       recentSearchService.deleteSearch.mockResolvedValue(undefined);
 
-      const result = await controller.deleteRecentSearch(mockUser as any, mockRecentSearchId);
+      const result = await controller.deleteRecentSearch(
+        mockUser as any,
+        mockRecentSearchId,
+      );
 
-      expect(recentSearchService.deleteSearch).toHaveBeenCalledWith(mockUserId, mockRecentSearchId);
+      expect(recentSearchService.deleteSearch).toHaveBeenCalledWith(
+        mockUserId,
+        mockRecentSearchId,
+      );
       expect(result).toEqual({ message: 'Search deleted successfully' });
     });
   });
@@ -316,7 +369,9 @@ describe('MusicController', () => {
 
       const result = await controller.clearRecentSearches(mockUser as any);
 
-      expect(recentSearchService.clearRecentSearches).toHaveBeenCalledWith(mockUserId);
+      expect(recentSearchService.clearRecentSearches).toHaveBeenCalledWith(
+        mockUserId,
+      );
       expect(result).toEqual({ message: 'All recent searches cleared' });
     });
   });
@@ -326,14 +381,27 @@ describe('MusicController', () => {
   // =====================
   describe('getForYouContent', () => {
     it('should return personalized content', async () => {
-      libraryService.getFavoriteSongs.mockResolvedValue({ data: [mockFavoriteSong], total: 1 });
-      libraryService.getFavoritePlaylists.mockResolvedValue({ data: [mockFavoritePlaylist], total: 1 });
-      libraryService.getFavoriteGenres.mockResolvedValue({ 
-        data: [{ ...mockFavoriteGenre, genre: { ...mockGenre, externalParams: 'pop' } }], 
-        total: 1 
+      libraryService.getFavoriteSongs.mockResolvedValue({
+        data: [mockFavoriteSong],
+        total: 1,
+      });
+      libraryService.getFavoritePlaylists.mockResolvedValue({
+        data: [mockFavoritePlaylist],
+        total: 1,
+      });
+      libraryService.getFavoriteGenres.mockResolvedValue({
+        data: [
+          {
+            ...mockFavoriteGenre,
+            genre: { ...mockGenre, externalParams: 'pop' },
+          },
+        ],
+        total: 1,
       });
       musicApiService.explore.mockResolvedValue(mockExploreResponse);
-      musicApiService.getGenrePlaylists.mockResolvedValue([mockPlaylistResponse]);
+      musicApiService.getGenrePlaylists.mockResolvedValue([
+        mockPlaylistResponse,
+      ]);
 
       const result = await controller.getForYouContent(mockUser as any);
 
@@ -345,8 +413,14 @@ describe('MusicController', () => {
 
     it('should handle empty favorites', async () => {
       libraryService.getFavoriteSongs.mockResolvedValue({ data: [], total: 0 });
-      libraryService.getFavoritePlaylists.mockResolvedValue({ data: [], total: 0 });
-      libraryService.getFavoriteGenres.mockResolvedValue({ data: [], total: 0 });
+      libraryService.getFavoritePlaylists.mockResolvedValue({
+        data: [],
+        total: 0,
+      });
+      libraryService.getFavoriteGenres.mockResolvedValue({
+        data: [],
+        total: 0,
+      });
       musicApiService.explore.mockResolvedValue(mockExploreResponse);
 
       const result = await controller.getForYouContent(mockUser as any);
@@ -359,20 +433,30 @@ describe('MusicController', () => {
     it('should throw BAD_GATEWAY on service error', async () => {
       libraryService.getFavoriteSongs.mockRejectedValue(new Error('DB error'));
 
-      await expect(controller.getForYouContent(mockUser as any))
-        .rejects
-        .toThrow(HttpException);
+      await expect(
+        controller.getForYouContent(mockUser as any),
+      ).rejects.toThrow(HttpException);
     });
 
     it('should continue even if genre playlists fail', async () => {
       libraryService.getFavoriteSongs.mockResolvedValue({ data: [], total: 0 });
-      libraryService.getFavoritePlaylists.mockResolvedValue({ data: [], total: 0 });
-      libraryService.getFavoriteGenres.mockResolvedValue({ 
-        data: [{ ...mockFavoriteGenre, genre: { ...mockGenre, externalParams: 'pop' } }], 
-        total: 1 
+      libraryService.getFavoritePlaylists.mockResolvedValue({
+        data: [],
+        total: 0,
+      });
+      libraryService.getFavoriteGenres.mockResolvedValue({
+        data: [
+          {
+            ...mockFavoriteGenre,
+            genre: { ...mockGenre, externalParams: 'pop' },
+          },
+        ],
+        total: 1,
       });
       musicApiService.explore.mockResolvedValue(mockExploreResponse);
-      musicApiService.getGenrePlaylists.mockRejectedValue(new Error('API error'));
+      musicApiService.getGenrePlaylists.mockRejectedValue(
+        new Error('API error'),
+      );
 
       const result = await controller.getForYouContent(mockUser as any);
 
@@ -385,17 +469,25 @@ describe('MusicController', () => {
   // =====================
   describe('getRecentlyListened', () => {
     it('should return recently listened songs', async () => {
-      listenHistoryService.getRecentlyListenedWithStreams.mockResolvedValue({ songs: [{ ...mockFavoriteSong.song, addedAt: new Date() } as any], total: 1 });
+      listenHistoryService.getRecentlyListenedWithStreams.mockResolvedValue({
+        songs: [{ ...mockFavoriteSong.song, addedAt: new Date() } as any],
+        total: 1,
+      });
 
       const result = await controller.getRecentlyListened(mockUser as any);
 
-      expect(listenHistoryService.getRecentlyListenedWithStreams).toHaveBeenCalledWith(mockUserId, 20, 0);
+      expect(
+        listenHistoryService.getRecentlyListenedWithStreams,
+      ).toHaveBeenCalledWith(mockUserId, 20, 0);
       expect(result.songs).toHaveLength(1);
       expect(result.songs[0]).toHaveProperty('addedAt');
     });
 
     it('should return empty array when no songs', async () => {
-      listenHistoryService.getRecentlyListenedWithStreams.mockResolvedValue({ songs: [], total: 0 });
+      listenHistoryService.getRecentlyListenedWithStreams.mockResolvedValue({
+        songs: [],
+        total: 0,
+      });
 
       const result = await controller.getRecentlyListened(mockUser as any);
 
@@ -404,11 +496,13 @@ describe('MusicController', () => {
     });
 
     it('should throw BAD_GATEWAY on service error', async () => {
-      listenHistoryService.getRecentlyListenedWithStreams.mockRejectedValue(new Error('DB error'));
+      listenHistoryService.getRecentlyListenedWithStreams.mockRejectedValue(
+        new Error('DB error'),
+      );
 
-      await expect(controller.getRecentlyListened(mockUser as any))
-        .rejects
-        .toThrow(HttpException);
+      await expect(
+        controller.getRecentlyListened(mockUser as any),
+      ).rejects.toThrow(HttpException);
     });
   });
 
@@ -439,9 +533,7 @@ describe('MusicController', () => {
     it('should throw BAD_GATEWAY on service error', async () => {
       musicApiService.explore.mockRejectedValue(new Error('Service error'));
 
-      await expect(controller.getCategories())
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.getCategories()).rejects.toThrow(HttpException);
     });
   });
 
@@ -470,9 +562,7 @@ describe('MusicController', () => {
     it('should throw BAD_GATEWAY on service error', async () => {
       musicApiService.explore.mockRejectedValue(new Error('Service error'));
 
-      await expect(controller.getGenres())
-        .rejects
-        .toThrow(HttpException);
+      await expect(controller.getGenres()).rejects.toThrow(HttpException);
     });
   });
 });

@@ -30,6 +30,7 @@ import { ListenHistoryService } from './services/listen-history.service';
 import { LibraryService } from '../library/library.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
+import { UpdateSelectedSongDto } from './dto/recent-search.dto';
 
 @ApiTags('music')
 @ApiBearerAuth('JWT-auth')
@@ -47,7 +48,10 @@ export class MusicController {
 
   @Get('explore')
   @ApiOperation({ summary: 'Explorar contenido: moods, géneros y charts' })
-  @ApiResponse({ status: 200, description: 'Contenido de exploración obtenido exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Contenido de exploración obtenido exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async explore() {
@@ -60,14 +64,20 @@ export class MusicController {
       await this.cacheManager.set(cacheKey, data, 300000); // 5 minutos en milisegundos
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch explore content', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch explore content',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
   @Get('explore/moods/:params')
   @ApiOperation({ summary: 'Obtener playlists de un mood específico' })
   @ApiParam({ name: 'params', description: 'Parámetros del mood' })
-  @ApiResponse({ status: 200, description: 'Playlists del mood obtenidas exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Playlists del mood obtenidas exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getMoodPlaylists(@Param('params') params: string) {
@@ -80,14 +90,20 @@ export class MusicController {
       await this.cacheManager.set(cacheKey, data, 1800000);
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch mood playlists', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch mood playlists',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
   @Get('explore/genres/:params')
   @ApiOperation({ summary: 'Obtener playlists de un género específico' })
   @ApiParam({ name: 'params', description: 'Parámetros del género' })
-  @ApiResponse({ status: 200, description: 'Playlists del género obtenidas exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Playlists del género obtenidas exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getGenrePlaylists(@Param('params') params: string) {
@@ -100,21 +116,37 @@ export class MusicController {
       await this.cacheManager.set(cacheKey, data, 1800000);
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch genre playlists', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch genre playlists',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
   @Get('playlists/:playlistId')
   @ApiOperation({ summary: 'Obtener detalles de una playlist' })
   @ApiParam({ name: 'playlistId', description: 'ID de la playlist' })
-  @ApiQuery({ name: 'start_index', description: 'Índice inicial para paginación', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'limit', description: 'Número de canciones a obtener', required: false, type: Number, example: 20 })
+  @ApiQuery({
+    name: 'start_index',
+    description: 'Índice inicial para paginación',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número de canciones a obtener',
+    required: false,
+    type: Number,
+    example: 20,
+  })
   @ApiResponse({ status: 200, description: 'Playlist obtenida exitosamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getPlaylist(
     @Param('playlistId') playlistId: string,
-    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
+    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe)
+    startIndex: number = 0,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
     try {
@@ -122,11 +154,18 @@ export class MusicController {
       const cachedData = await this.cacheManager.get(cacheKey);
       if (cachedData) return cachedData;
 
-      const data = await this.musicApiService.getPlaylist(playlistId, startIndex, limit);
+      const data = await this.musicApiService.getPlaylist(
+        playlistId,
+        startIndex,
+        limit,
+      );
       await this.cacheManager.set(cacheKey, data, 600000);
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch playlist', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch playlist',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -134,8 +173,16 @@ export class MusicController {
   @Get('stream/:videoId')
   @ApiOperation({ summary: 'Obtener URL de stream de audio de una canción' })
   @ApiParam({ name: 'videoId', description: 'ID del video/canción' })
-  @ApiQuery({ name: 'bypass_cache', description: 'Ignorar caché y obtener URL fresca', required: false, type: Boolean })
-  @ApiResponse({ status: 200, description: 'URL de stream obtenida exitosamente' })
+  @ApiQuery({
+    name: 'bypass_cache',
+    description: 'Ignorar caché y obtener URL fresca',
+    required: false,
+    type: Boolean,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'URL de stream obtenida exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getStreamUrl(
@@ -150,7 +197,11 @@ export class MusicController {
         throw error;
       }
       throw new HttpException(
-        { message: 'Failed to get stream URL', statusCode: HttpStatus.BAD_GATEWAY, videoId },
+        {
+          message: 'Failed to get stream URL',
+          statusCode: HttpStatus.BAD_GATEWAY,
+          videoId,
+        },
         HttpStatus.BAD_GATEWAY,
       );
     }
@@ -164,9 +215,26 @@ export class MusicController {
   @Get('search')
   @ApiOperation({ summary: 'Buscar música y guardar búsqueda en historial' })
   @ApiQuery({ name: 'q', description: 'Término de búsqueda', required: true })
-  @ApiQuery({ name: 'filter', description: 'Filtro de búsqueda', required: false, example: 'songs' })
-  @ApiQuery({ name: 'start_index', description: 'Índice inicial para paginación', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'limit', description: 'Número de resultados', required: false, type: Number, example: 20 })
+  @ApiQuery({
+    name: 'filter',
+    description: 'Filtro de búsqueda',
+    required: false,
+    example: 'songs',
+  })
+  @ApiQuery({
+    name: 'start_index',
+    description: 'Índice inicial para paginación',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número de resultados',
+    required: false,
+    type: Number,
+    example: 20,
+  })
   @ApiResponse({ status: 200, description: 'Búsqueda realizada exitosamente' })
   @ApiResponse({ status: 400, description: 'Parámetro de búsqueda requerido' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
@@ -174,12 +242,16 @@ export class MusicController {
   async search(
     @Query('q') query: string,
     @Query('filter') filter: string = 'songs',
-    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
+    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe)
+    startIndex: number = 0,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
     @CurrentUser() user: any,
   ) {
     if (!query) {
-      throw new HttpException('Query parameter "q" is required', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Query parameter "q" is required',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     try {
@@ -187,7 +259,12 @@ export class MusicController {
       const cachedData = await this.cacheManager.get(cacheKey);
       if (cachedData) return cachedData;
 
-      const results = await this.musicApiService.search(query, filter, startIndex, limit);
+      const results = await this.musicApiService.search(
+        query,
+        filter,
+        startIndex,
+        limit,
+      );
       await this.cacheManager.set(cacheKey, results, 300000);
 
       await this.recentSearchService.saveSearch(user.userId, query, filter);
@@ -198,23 +275,29 @@ export class MusicController {
   }
 
   @Put('recent-searches/select')
-  @ApiOperation({ summary: 'Actualizar la canción seleccionada en una búsqueda reciente' })
+  @ApiOperation({
+    summary: 'Actualizar la canción seleccionada en una búsqueda reciente',
+  })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Término de búsqueda original' },
         videoId: { type: 'string', description: 'ID del video seleccionado' },
-        songData: { type: 'object', description: 'Datos de la canción seleccionada' },
+        songData: {
+          type: 'object',
+          description: 'Datos de la canción seleccionada',
+        },
       },
       required: ['query', 'videoId', 'songData'],
     },
   })
   @ApiResponse({ status: 200, description: 'Canción seleccionada actualizada' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async updateSelectedSong(
     @CurrentUser() user: any,
-    @Body() body: { query: string; videoId: string; songData: any },
+    @Body() body: UpdateSelectedSongDto,
   ) {
     const result = await this.recentSearchService.updateSelectedSong(
       user.userId,
@@ -234,16 +317,86 @@ export class MusicController {
 
   @Get('recent-searches')
   @ApiOperation({ summary: 'Obtener búsquedas recientes del usuario' })
-  @ApiQuery({ name: 'start_index', description: 'Índice inicial para paginación', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'limit', description: 'Número máximo de búsquedas', required: false, type: Number, example: 10 })
-  @ApiResponse({ status: 200, description: 'Búsquedas recientes obtenidas exitosamente' })
+  @ApiQuery({
+    name: 'start_index',
+    description: 'Índice inicial para paginación',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número máximo de búsquedas',
+    required: false,
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'include_stream_urls',
+    description:
+      'Incluir stream URLs frescas (recomendado, las guardadas pueden estar expiradas)',
+    required: false,
+    type: Boolean,
+    example: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Búsquedas recientes obtenidas exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async getRecentSearches(
     @CurrentUser() user: any,
-    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
+    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe)
+    startIndex: number = 0,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @Query('include_stream_urls') includeStreamUrls?: boolean,
   ) {
-    const searches = await this.recentSearchService.getRecentSearches(user.userId, startIndex, limit);
+    const searches = await this.recentSearchService.getRecentSearches(
+      user.userId,
+      startIndex,
+      limit,
+    );
+
+    // Si se piden stream URLs, obtenerlas frescas de music_services
+    // Las URLs guardadas en PostgreSQL pueden estar expiradas (YouTube ~6h TTL)
+    if (includeStreamUrls && searches.length > 0) {
+      const videoIds = searches
+        .filter((s) => s.videoId)
+        .map((s) => s.videoId!)
+        .filter((v): v is string => !!v);
+
+      if (videoIds.length > 0) {
+        try {
+          const streamUrls = await this.musicApiService.getBatchStreamUrls(
+            videoIds,
+            false, // usar cache de Redis (4h TTL)
+          );
+          const streamMap = new Map(
+            streamUrls.results.map((r) => [r.videoId, r.url]),
+          );
+
+          return searches.map((search) => ({
+            id: search.id,
+            query: search.query,
+            filter: search.filter,
+            videoId: search.videoId,
+            songData: search.songData
+              ? {
+                  ...search.songData,
+                  streamUrl:
+                    streamMap.get(search.videoId!) ||
+                    search.songData?.streamUrl,
+                }
+              : null,
+            createdAt: search.createdAt,
+            lastSearchedAt: search.lastSearchedAt,
+          }));
+        } catch {
+          // Si falla obtener streams, continuar con datos guardados
+        }
+      }
+    }
+
     return searches.map((search) => ({
       id: search.id,
       query: search.query,
@@ -260,14 +413,22 @@ export class MusicController {
   @ApiParam({ name: 'searchId', description: 'ID de la búsqueda a eliminar' })
   @ApiResponse({ status: 200, description: 'Búsqueda eliminada exitosamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  async deleteRecentSearch(@CurrentUser() user: any, @Param('searchId') searchId: string) {
+  async deleteRecentSearch(
+    @CurrentUser() user: any,
+    @Param('searchId') searchId: string,
+  ) {
     await this.recentSearchService.deleteSearch(user.userId, searchId);
     return { message: 'Search deleted successfully' };
   }
 
   @Delete('recent-searches')
-  @ApiOperation({ summary: 'Limpiar todas las búsquedas recientes del usuario' })
-  @ApiResponse({ status: 200, description: 'Todas las búsquedas eliminadas exitosamente' })
+  @ApiOperation({
+    summary: 'Limpiar todas las búsquedas recientes del usuario',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Todas las búsquedas eliminadas exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async clearRecentSearches(@CurrentUser() user: any) {
     await this.recentSearchService.clearRecentSearches(user.userId);
@@ -275,8 +436,13 @@ export class MusicController {
   }
 
   @Get('for-you')
-  @ApiOperation({ summary: 'Obtener contenido personalizado "Para ti" basado en favoritos' })
-  @ApiResponse({ status: 200, description: 'Contenido personalizado obtenido exitosamente' })
+  @ApiOperation({
+    summary: 'Obtener contenido personalizado "Para ti" basado en favoritos',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Contenido personalizado obtenido exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getForYouContent(@CurrentUser() user: any) {
@@ -285,20 +451,26 @@ export class MusicController {
       const cachedData = await this.cacheManager.get(cacheKey);
       if (cachedData) return cachedData;
 
-      const [favoriteSongs, favoritePlaylists, favoriteGenres, exploreContent] = await Promise.all([
-        this.libraryService.getFavoriteSongs(user.userId, 1, 5),
-        this.libraryService.getFavoritePlaylists(user.userId, 1, 5),
-        this.libraryService.getFavoriteGenres(user.userId, 1, 5),
-        this.musicApiService.explore(),
-      ]);
+      const [favoriteSongs, favoritePlaylists, favoriteGenres, exploreContent] =
+        await Promise.all([
+          this.libraryService.getFavoriteSongs(user.userId, 1, 5),
+          this.libraryService.getFavoritePlaylists(user.userId, 1, 5),
+          this.libraryService.getFavoriteGenres(user.userId, 1, 5),
+          this.musicApiService.explore(),
+        ]);
 
-      const forYouMixes: Array<{ title: string; type: string; playlists: any[] }> = [];
+      const forYouMixes: Array<{
+        title: string;
+        type: string;
+        playlists: any[];
+      }> = [];
 
       if (favoriteGenres.data.length > 0) {
         const genreParams = favoriteGenres.data[0].genre.externalParams;
         if (genreParams) {
           try {
-            const genrePlaylists = await this.musicApiService.getGenrePlaylists(genreParams);
+            const genrePlaylists =
+              await this.musicApiService.getGenrePlaylists(genreParams);
             forYouMixes.push({
               title: `Mix basado en ${favoriteGenres.data[0].genre.name}`,
               type: 'genre',
@@ -314,23 +486,42 @@ export class MusicController {
         favoritePlaylists: favoritePlaylists.data.slice(0, 5),
         exploreContent,
       };
-      
+
       await this.cacheManager.set(cacheKey, data, 300000);
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch for you content', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch for you content',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
   @Get('recently-listened')
   @ApiOperation({ summary: 'Obtener canciones recientemente escuchadas' })
-  @ApiQuery({ name: 'start_index', description: 'Índice inicial para paginación', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'limit', description: 'Número de canciones', required: false, type: Number, example: 20 })
-  @ApiResponse({ status: 200, description: 'Canciones recientes obtenidas exitosamente' })
+  @ApiQuery({
+    name: 'start_index',
+    description: 'Índice inicial para paginación',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número de canciones',
+    required: false,
+    type: Number,
+    example: 20,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Canciones recientes obtenidas exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async getRecentlyListened(
     @CurrentUser() user: any,
-    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
+    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe)
+    startIndex: number = 0,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
   ) {
     try {
@@ -340,7 +531,10 @@ export class MusicController {
         startIndex,
       );
     } catch (error) {
-      throw new HttpException('Failed to fetch recently listened', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch recently listened',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -355,7 +549,10 @@ export class MusicController {
       required: ['videoId'],
     },
   })
-  @ApiResponse({ status: 201, description: 'Reproducción registrada exitosamente' })
+  @ApiResponse({
+    status: 201,
+    description: 'Reproducción registrada exitosamente',
+  })
   @ApiResponse({ status: 400, description: 'Solicitud inválida' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async recordListen(
@@ -364,30 +561,39 @@ export class MusicController {
   ) {
     try {
       const { videoId } = body;
-      
+
       if (!videoId) {
         throw new HttpException('videoId is required', HttpStatus.BAD_REQUEST);
       }
 
-      const result = await this.listenHistoryService.recordListen(user.userId, videoId);
-      
+      const result = await this.listenHistoryService.recordListen(
+        user.userId,
+        videoId,
+      );
+
       if (!result) {
         return { success: false, message: 'Invalid videoId' };
       }
-      
+
       return { success: true, message: 'Listen recorded successfully' };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
       console.error('recordListen error:', error);
-      throw new HttpException('Failed to record listen', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to record listen',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
   @Get('categories')
   @ApiOperation({ summary: 'Obtener todas las categorías disponibles' })
-  @ApiResponse({ status: 200, description: 'Categorías obtenidas exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Categorías obtenidas exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getCategories() {
@@ -405,7 +611,10 @@ export class MusicController {
       await this.cacheManager.set(cacheKey, data, 300000); // 5 minutos
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch categories', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch categories',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
@@ -421,7 +630,10 @@ export class MusicController {
       if (cachedData) return cachedData;
 
       const exploreContent = await this.musicApiService.explore();
-      const data = { genres: exploreContent.genres || [], moods: exploreContent.moods || [] };
+      const data = {
+        genres: exploreContent.genres || [],
+        moods: exploreContent.moods || [],
+      };
       await this.cacheManager.set(cacheKey, data, 300000); // 5 minutos
       return data;
     } catch (error) {
@@ -432,49 +644,113 @@ export class MusicController {
   @Get('radio/:videoId')
   @ApiOperation({ summary: 'Obtener playlist de radio basada en una canción' })
   @ApiParam({ name: 'videoId', description: 'ID del video/canción' })
-  @ApiQuery({ name: 'limit', description: 'Número de canciones', required: false, type: Number, example: 10 })
-  @ApiQuery({ name: 'start_index', description: 'Índice inicial para paginación', required: false, type: Number, example: 0 })
-  @ApiResponse({ status: 200, description: 'Playlist de radio obtenida exitosamente' })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número de canciones',
+    required: false,
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'start_index',
+    description: 'Índice inicial para paginación',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Playlist de radio obtenida exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getRadio(
     @Param('videoId') videoId: string,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
+    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe)
+    startIndex: number = 0,
   ) {
     try {
       const cacheKey = `music_radio:${videoId}:${limit}:${startIndex}`;
       const cachedData = await this.cacheManager.get(cacheKey);
       if (cachedData) return cachedData;
 
-      const data = await this.musicApiService.getRadioPlaylist(videoId, limit, startIndex, true);
+      const data = await this.musicApiService.getRadioPlaylist(
+        videoId,
+        limit,
+        startIndex,
+        true,
+      );
       await this.cacheManager.set(cacheKey, data, 600000);
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch radio playlist', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch radio playlist',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 
   @Get('watch')
-  @ApiOperation({ summary: 'Obtener playlist de reproducción (siguientes canciones)' })
-  @ApiQuery({ name: 'video_id', description: 'ID del video para iniciar', required: false, type: String })
-  @ApiQuery({ name: 'playlist_id', description: 'ID de la playlist', required: false, type: String })
-  @ApiQuery({ name: 'limit', description: 'Número de canciones', required: false, type: Number, example: 25 })
-  @ApiQuery({ name: 'start_index', description: 'Índice inicial para paginación', required: false, type: Number, example: 0 })
-  @ApiQuery({ name: 'shuffle', description: 'Mezclar playlist', required: false, type: Boolean, example: false })
-  @ApiResponse({ status: 200, description: 'Playlist de reproducción obtenida exitosamente' })
-  @ApiResponse({ status: 400, description: 'Se requiere video_id o playlist_id' })
+  @ApiOperation({
+    summary: 'Obtener playlist de reproducción (siguientes canciones)',
+  })
+  @ApiQuery({
+    name: 'video_id',
+    description: 'ID del video para iniciar',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'playlist_id',
+    description: 'ID de la playlist',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número de canciones',
+    required: false,
+    type: Number,
+    example: 25,
+  })
+  @ApiQuery({
+    name: 'start_index',
+    description: 'Índice inicial para paginación',
+    required: false,
+    type: Number,
+    example: 0,
+  })
+  @ApiQuery({
+    name: 'shuffle',
+    description: 'Mezclar playlist',
+    required: false,
+    type: Boolean,
+    example: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Playlist de reproducción obtenida exitosamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Se requiere video_id o playlist_id',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 502, description: 'Error del servicio externo' })
   async getWatchPlaylist(
     @Query('video_id') videoId: string,
     @Query('playlist_id') playlistId: string,
     @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limit: number,
-    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe) startIndex: number = 0,
+    @Query('start_index', new DefaultValuePipe(0), ParseIntPipe)
+    startIndex: number = 0,
     @Query('shuffle', new DefaultValuePipe(false)) shuffle: boolean = false,
   ) {
     if (!videoId && !playlistId) {
-      throw new HttpException('Se requiere video_id o playlist_id', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Se requiere video_id o playlist_id',
+        HttpStatus.BAD_REQUEST,
+      );
     }
     try {
       const cacheKey = `music_watch:${videoId || ''}:${playlistId || ''}:${limit}:${startIndex}:${shuffle}`;
@@ -493,7 +769,10 @@ export class MusicController {
       await this.cacheManager.set(cacheKey, data, 600000);
       return data;
     } catch (error) {
-      throw new HttpException('Failed to fetch watch playlist', HttpStatus.BAD_GATEWAY);
+      throw new HttpException(
+        'Failed to fetch watch playlist',
+        HttpStatus.BAD_GATEWAY,
+      );
     }
   }
 

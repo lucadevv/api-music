@@ -12,7 +12,7 @@ async function bootstrap() {
     bodyParser: true,
     logger: ['error', 'warn'],
   });
-  
+
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port');
   const apiPrefix = configService.get<string>('app.apiPrefix');
@@ -76,8 +76,12 @@ async function bootstrap() {
   });
 
   await app.listen(port ?? 3000, '0.0.0.0');
-  console.log(`🚀 Aplicación corriendo en: http://localhost:${port}/${apiPrefix}`);
-  console.log(`🚀 Aplicación corriendo en red: http://0.0.0.0:${port}/${apiPrefix}`);
+  console.log(
+    `🚀 Aplicación corriendo en: http://localhost:${port}/${apiPrefix}`,
+  );
+  console.log(
+    `🚀 Aplicación corriendo en red: http://0.0.0.0:${port}/${apiPrefix}`,
+  );
   console.log(`📚 Documentación Swagger: http://localhost:${port}/api/docs`);
 }
 bootstrap();

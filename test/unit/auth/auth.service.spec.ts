@@ -9,7 +9,11 @@ import { GoogleTokenService } from '../../../src/auth/services/google-token.serv
 import { UsersService } from '../../../src/users/users.service';
 import { RefreshToken } from '../../../src/common/entities/refresh-token.entity';
 import { AuthProvider } from '../../../src/users/entities/user.entity';
-import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   mockUser,
   mockUserId,
@@ -112,16 +116,24 @@ describe('AuthService', () => {
 
       expect(result).toEqual(mockUser);
       expect(usersService.findByEmail).toHaveBeenCalledWith(mockUserEmail);
-      expect(bcrypt.compare).toHaveBeenCalledWith('password123', mockUser.password);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'password123',
+        mockUser.password,
+      );
     });
 
     it('should return null when user not found', async () => {
       usersService.findByEmail.mockResolvedValue(null);
 
-      const result = await service.validateUser('nonexistent@example.com', 'password123');
+      const result = await service.validateUser(
+        'nonexistent@example.com',
+        'password123',
+      );
 
       expect(result).toBeNull();
-      expect(usersService.findByEmail).toHaveBeenCalledWith('nonexistent@example.com');
+      expect(usersService.findByEmail).toHaveBeenCalledWith(
+        'nonexistent@example.com',
+      );
       expect(bcrypt.compare).not.toHaveBeenCalled();
     });
 
@@ -132,7 +144,10 @@ describe('AuthService', () => {
       const result = await service.validateUser(mockUserEmail, 'wrongpassword');
 
       expect(result).toBeNull();
-      expect(bcrypt.compare).toHaveBeenCalledWith('wrongpassword', mockUser.password);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        'wrongpassword',
+        mockUser.password,
+      );
     });
 
     it('should return null when user has no password (OAuth user)', async () => {
@@ -149,9 +164,9 @@ describe('AuthService', () => {
       usersService.findByEmail.mockResolvedValue(mockInactiveUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      await expect(service.validateUser(mockInactiveUser.email, 'password123'))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(
+        service.validateUser(mockInactiveUser.email, 'password123'),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -203,9 +218,9 @@ describe('AuthService', () => {
     it('should throw ConflictException when email already exists', async () => {
       usersService.findByEmail.mockResolvedValue(mockUser);
 
-      await expect(service.register(registerDto))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toThrow(
+        ConflictException,
+      );
 
       expect(usersService.create).not.toHaveBeenCalled();
     });
@@ -229,7 +244,10 @@ describe('AuthService', () => {
 
       const result = await service.login(loginDto);
 
-      expect(service.validateUser).toHaveBeenCalledWith(loginDto.email, loginDto.password);
+      expect(service.validateUser).toHaveBeenCalledWith(
+        loginDto.email,
+        loginDto.password,
+      );
       expect(usersService.updateLastLogin).toHaveBeenCalledWith(mockUser.id);
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('refreshToken');
@@ -238,9 +256,9 @@ describe('AuthService', () => {
     it('should throw UnauthorizedException when credentials are invalid', async () => {
       jest.spyOn(service, 'validateUser').mockResolvedValue(null);
 
-      await expect(service.login(loginDto))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       expect(usersService.updateLastLogin).not.toHaveBeenCalled();
     });
@@ -276,8 +294,12 @@ describe('AuthService', () => {
 
     it('should link Google account to existing user', async () => {
       const existingUser = { ...mockUser, id: 'existing-id' };
-      const updatedUser = { ...existingUser, provider: AuthProvider.GOOGLE, providerId: mockGoogleProfile.id };
-      
+      const updatedUser = {
+        ...existingUser,
+        provider: AuthProvider.GOOGLE,
+        providerId: mockGoogleProfile.id,
+      };
+
       usersService.findByProvider.mockResolvedValue(null);
       usersService.findByEmail.mockResolvedValue(existingUser);
       usersService.update.mockResolvedValue(updatedUser);
@@ -313,9 +335,9 @@ describe('AuthService', () => {
     it('should throw BadRequestException when profile missing email', async () => {
       const profileWithoutEmail = { ...mockGoogleProfile, emails: [] };
 
-      await expect(service.loginWithGoogle(profileWithoutEmail))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(
+        service.loginWithGoogle(profileWithoutEmail),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw UnauthorizedException when user is inactive', async () => {
@@ -323,9 +345,9 @@ describe('AuthService', () => {
       usersService.update.mockResolvedValue(mockInactiveUser);
       usersService.findById.mockResolvedValue(mockInactiveUser);
 
-      await expect(service.loginWithGoogle(mockGoogleProfile))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(service.loginWithGoogle(mockGoogleProfile)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -359,9 +381,9 @@ describe('AuthService', () => {
     it('should throw BadRequestException when profile missing email', async () => {
       const profileWithoutEmail = { ...mockAppleProfile, email: undefined };
 
-      await expect(service.loginWithApple(profileWithoutEmail))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(service.loginWithApple(profileWithoutEmail)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -388,15 +410,17 @@ describe('AuthService', () => {
       const result = await service.refreshToken(mockRefreshTokenValue);
 
       expect(result).toHaveProperty('accessToken');
-      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(mockTokenRecord.id);
+      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(
+        mockTokenRecord.id,
+      );
     });
 
     it('should throw UnauthorizedException when refresh token is invalid', async () => {
       mockRefreshTokenRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.refreshToken('invalidToken'))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(service.refreshToken('invalidToken')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException when user not found', async () => {
@@ -411,9 +435,9 @@ describe('AuthService', () => {
       mockRefreshTokenRepo.findOne.mockResolvedValue(mockTokenRecord);
       usersService.findById.mockResolvedValue(null);
 
-      await expect(service.refreshToken(mockRefreshTokenValue))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(service.refreshToken(mockRefreshTokenValue)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException when user is inactive', async () => {
@@ -428,9 +452,9 @@ describe('AuthService', () => {
       mockRefreshTokenRepo.findOne.mockResolvedValue(mockTokenRecord);
       usersService.findById.mockResolvedValue(mockInactiveUser);
 
-      await expect(service.refreshToken(mockRefreshTokenValue))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(service.refreshToken(mockRefreshTokenValue)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -451,7 +475,9 @@ describe('AuthService', () => {
 
       await service.logout(mockRefreshTokenValue);
 
-      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(mockTokenRecord.id);
+      expect(mockRefreshTokenRepo.delete).toHaveBeenCalledWith(
+        mockTokenRecord.id,
+      );
     });
 
     it('should not throw error when refresh token not found', async () => {

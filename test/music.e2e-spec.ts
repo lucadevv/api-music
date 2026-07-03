@@ -47,7 +47,9 @@ describe('MusicController (e2e)', () => {
         getMoodPlaylists: jest.fn().mockResolvedValue([mockPlaylistResponse]),
         getGenrePlaylists: jest.fn().mockResolvedValue([mockPlaylistResponse]),
         getPlaylist: jest.fn().mockResolvedValue(mockPlaylistResponse),
-        getStreamUrl: jest.fn().mockResolvedValue({ streamUrl: 'http://stream.url' }),
+        getStreamUrl: jest
+          .fn()
+          .mockResolvedValue({ streamUrl: 'http://stream.url' }),
         search: jest.fn().mockResolvedValue(mockSearchResponse),
       })
       .compile();
@@ -56,8 +58,6 @@ describe('MusicController (e2e)', () => {
     app.setGlobalPrefix('api');
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     await app.init();
-
-
 
     // Register and login to get token
     const registerResponse = await request(app.getHttpServer())
@@ -88,9 +88,7 @@ describe('MusicController (e2e)', () => {
     });
 
     it('should fail without token', () => {
-      return request(app.getHttpServer())
-        .get('/api/music/explore')
-        .expect(401);
+      return request(app.getHttpServer()).get('/api/music/explore').expect(401);
     });
   });
 
@@ -170,9 +168,7 @@ describe('MusicController (e2e)', () => {
     }, 10000); // Timeout de 10 segundos
 
     it('should fail without token', () => {
-      return request(app.getHttpServer())
-        .get('/api/music/for-you')
-        .expect(401);
+      return request(app.getHttpServer()).get('/api/music/for-you').expect(401);
     }, 10000);
   });
 
@@ -226,9 +222,7 @@ describe('MusicController (e2e)', () => {
     }, 10000);
 
     it('should fail without token', () => {
-      return request(app.getHttpServer())
-        .get('/api/music/genres')
-        .expect(401);
+      return request(app.getHttpServer()).get('/api/music/genres').expect(401);
     }, 10000);
   });
 });

@@ -84,9 +84,9 @@ describe('AuthController', () => {
         new ConflictException('User with this email already exists'),
       );
 
-      await expect(controller.register(registerDto))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(controller.register(registerDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -113,9 +113,9 @@ describe('AuthController', () => {
         new UnauthorizedException('Invalid credentials'),
       );
 
-      await expect(controller.login(mockUser, loginDto))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(controller.login(mockUser, loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -176,7 +176,9 @@ describe('AuthController', () => {
 
       const result = await controller.refresh(refreshTokenDto);
 
-      expect(authService.refreshToken).toHaveBeenCalledWith(mockRefreshTokenValue);
+      expect(authService.refreshToken).toHaveBeenCalledWith(
+        mockRefreshTokenValue,
+      );
       expect(result).toEqual(mockAuthResponse);
     });
 
@@ -185,9 +187,9 @@ describe('AuthController', () => {
         new UnauthorizedException('Invalid or expired refresh token'),
       );
 
-      await expect(controller.refresh(refreshTokenDto))
-        .rejects
-        .toThrow(UnauthorizedException);
+      await expect(controller.refresh(refreshTokenDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 

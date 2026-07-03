@@ -74,7 +74,9 @@ describe('LibraryController', () => {
     it('should add song to favorites with songId', async () => {
       libraryService.addFavoriteSong.mockResolvedValue(mockFavoriteSong);
 
-      const result = await controller.addFavoriteSong(mockUser, { songId: mockSongId });
+      const result = await controller.addFavoriteSong(mockUser, {
+        songId: mockSongId,
+      });
 
       expect(libraryService.addFavoriteSong).toHaveBeenCalledWith(
         mockUserId,
@@ -88,7 +90,9 @@ describe('LibraryController', () => {
     it('should add song to favorites with videoId', async () => {
       libraryService.addFavoriteSong.mockResolvedValue(mockFavoriteSong);
 
-      const result = await controller.addFavoriteSong(mockUser, { videoId: mockVideoId });
+      const result = await controller.addFavoriteSong(mockUser, {
+        videoId: mockVideoId,
+      });
 
       expect(libraryService.addFavoriteSong).toHaveBeenCalledWith(
         mockUserId,
@@ -104,9 +108,9 @@ describe('LibraryController', () => {
         new BadRequestException('Either songId or videoId must be provided'),
       );
 
-      await expect(controller.addFavoriteSong(mockUser, {}))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(controller.addFavoriteSong(mockUser, {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when song not found', async () => {
@@ -114,9 +118,9 @@ describe('LibraryController', () => {
         new NotFoundException('Song not found'),
       );
 
-      await expect(controller.addFavoriteSong(mockUser, { songId: 'nonexistent' }))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        controller.addFavoriteSong(mockUser, { songId: 'nonexistent' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException when song already in favorites', async () => {
@@ -124,9 +128,9 @@ describe('LibraryController', () => {
         new ConflictException('Song is already in favorites'),
       );
 
-      await expect(controller.addFavoriteSong(mockUser, { songId: mockSongId }))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(
+        controller.addFavoriteSong(mockUser, { songId: mockSongId }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
@@ -136,7 +140,10 @@ describe('LibraryController', () => {
 
       const result = await controller.removeFavoriteSong(mockUser, mockSongId);
 
-      expect(libraryService.removeFavoriteSong).toHaveBeenCalledWith(mockUserId, mockSongId);
+      expect(libraryService.removeFavoriteSong).toHaveBeenCalledWith(
+        mockUserId,
+        mockSongId,
+      );
       expect(result).toEqual({ message: 'Song removed from favorites' });
     });
 
@@ -145,9 +152,9 @@ describe('LibraryController', () => {
         new NotFoundException('Song is not in favorites'),
       );
 
-      await expect(controller.removeFavoriteSong(mockUser, mockSongId))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        controller.removeFavoriteSong(mockUser, mockSongId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -158,7 +165,11 @@ describe('LibraryController', () => {
 
       const result = await controller.getFavoriteSongs(mockUser, 1, 20);
 
-      expect(libraryService.getFavoriteSongs).toHaveBeenCalledWith(mockUserId, 1, 20);
+      expect(libraryService.getFavoriteSongs).toHaveBeenCalledWith(
+        mockUserId,
+        1,
+        20,
+      );
       expect(result.data).toHaveLength(1);
       // The controller returns the favorite record ID combined with song details or nested.
       // Based on the test failure, result.data[0].id is mockFavoriteSong.id.
@@ -174,7 +185,11 @@ describe('LibraryController', () => {
 
       await controller.getFavoriteSongs(mockUser, 1, 20);
 
-      expect(libraryService.getFavoriteSongs).toHaveBeenCalledWith(mockUserId, 1, 20);
+      expect(libraryService.getFavoriteSongs).toHaveBeenCalledWith(
+        mockUserId,
+        1,
+        20,
+      );
     });
 
     it('should return empty array when no favorites', async () => {
@@ -193,7 +208,10 @@ describe('LibraryController', () => {
 
       const result = await controller.checkSongFavorite(mockUser, mockSongId);
 
-      expect(libraryService.isSongFavorite).toHaveBeenCalledWith(mockUserId, mockSongId);
+      expect(libraryService.isSongFavorite).toHaveBeenCalledWith(
+        mockUserId,
+        mockSongId,
+      );
       expect(result).toEqual({ isFavorite: true });
     });
 
@@ -212,9 +230,13 @@ describe('LibraryController', () => {
 
   describe('addFavoritePlaylist', () => {
     it('should add playlist to favorites with playlistId', async () => {
-      libraryService.addFavoritePlaylist.mockResolvedValue(mockFavoritePlaylist);
+      libraryService.addFavoritePlaylist.mockResolvedValue(
+        mockFavoritePlaylist,
+      );
 
-      const result = await controller.addFavoritePlaylist(mockUser, { playlistId: mockPlaylistId });
+      const result = await controller.addFavoritePlaylist(mockUser, {
+        playlistId: mockPlaylistId,
+      });
 
       expect(libraryService.addFavoritePlaylist).toHaveBeenCalledWith(
         mockUserId,
@@ -226,10 +248,12 @@ describe('LibraryController', () => {
     });
 
     it('should add playlist to favorites with externalPlaylistId', async () => {
-      libraryService.addFavoritePlaylist.mockResolvedValue(mockFavoritePlaylist);
+      libraryService.addFavoritePlaylist.mockResolvedValue(
+        mockFavoritePlaylist,
+      );
 
-      const result = await controller.addFavoritePlaylist(mockUser, { 
-        externalPlaylistId: mockExternalPlaylistId 
+      const result = await controller.addFavoritePlaylist(mockUser, {
+        externalPlaylistId: mockExternalPlaylistId,
       });
 
       expect(libraryService.addFavoritePlaylist).toHaveBeenCalledWith(
@@ -243,12 +267,14 @@ describe('LibraryController', () => {
 
     it('should throw BadRequestException when neither playlistId nor externalPlaylistId provided', async () => {
       libraryService.addFavoritePlaylist.mockRejectedValue(
-        new BadRequestException('Either playlistId or externalPlaylistId must be provided'),
+        new BadRequestException(
+          'Either playlistId or externalPlaylistId must be provided',
+        ),
       );
 
-      await expect(controller.addFavoritePlaylist(mockUser, {}))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(
+        controller.addFavoritePlaylist(mockUser, {}),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw ConflictException when playlist already in favorites', async () => {
@@ -256,9 +282,11 @@ describe('LibraryController', () => {
         new ConflictException('Playlist is already in favorites'),
       );
 
-      await expect(controller.addFavoritePlaylist(mockUser, { playlistId: mockPlaylistId }))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(
+        controller.addFavoritePlaylist(mockUser, {
+          playlistId: mockPlaylistId,
+        }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
@@ -266,9 +294,15 @@ describe('LibraryController', () => {
     it('should remove playlist from favorites', async () => {
       libraryService.removeFavoritePlaylist.mockResolvedValue(undefined);
 
-      const result = await controller.removeFavoritePlaylist(mockUser, mockPlaylistId);
+      const result = await controller.removeFavoritePlaylist(
+        mockUser,
+        mockPlaylistId,
+      );
 
-      expect(libraryService.removeFavoritePlaylist).toHaveBeenCalledWith(mockUserId, mockPlaylistId);
+      expect(libraryService.removeFavoritePlaylist).toHaveBeenCalledWith(
+        mockUserId,
+        mockPlaylistId,
+      );
       expect(result).toEqual({ message: 'Playlist removed from favorites' });
     });
 
@@ -277,9 +311,9 @@ describe('LibraryController', () => {
         new NotFoundException('Playlist is not in favorites'),
       );
 
-      await expect(controller.removeFavoritePlaylist(mockUser, mockPlaylistId))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        controller.removeFavoritePlaylist(mockUser, mockPlaylistId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -290,7 +324,11 @@ describe('LibraryController', () => {
 
       const result = await controller.getFavoritePlaylists(mockUser, 1, 20);
 
-      expect(libraryService.getFavoritePlaylists).toHaveBeenCalledWith(mockUserId, 1, 20);
+      expect(libraryService.getFavoritePlaylists).toHaveBeenCalledWith(
+        mockUserId,
+        1,
+        20,
+      );
       expect(result).toEqual(mockResponse);
     });
   });
@@ -299,7 +337,10 @@ describe('LibraryController', () => {
     it('should return true when playlist is favorite', async () => {
       libraryService.isPlaylistFavorite.mockResolvedValue(true);
 
-      const result = await controller.checkPlaylistFavorite(mockUser, mockPlaylistId);
+      const result = await controller.checkPlaylistFavorite(
+        mockUser,
+        mockPlaylistId,
+      );
 
       expect(result).toEqual({ isFavorite: true });
     });
@@ -307,7 +348,10 @@ describe('LibraryController', () => {
     it('should return false when playlist is not favorite', async () => {
       libraryService.isPlaylistFavorite.mockResolvedValue(false);
 
-      const result = await controller.checkPlaylistFavorite(mockUser, mockPlaylistId);
+      const result = await controller.checkPlaylistFavorite(
+        mockUser,
+        mockPlaylistId,
+      );
 
       expect(result).toEqual({ isFavorite: false });
     });
@@ -321,7 +365,9 @@ describe('LibraryController', () => {
     it('should add genre to favorites with genreId', async () => {
       libraryService.addFavoriteGenre.mockResolvedValue(mockFavoriteGenre);
 
-      const result = await controller.addFavoriteGenre(mockUser, { genreId: mockGenreId });
+      const result = await controller.addFavoriteGenre(mockUser, {
+        genreId: mockGenreId,
+      });
 
       expect(libraryService.addFavoriteGenre).toHaveBeenCalledWith(
         mockUserId,
@@ -334,7 +380,7 @@ describe('LibraryController', () => {
     it('should add genre to favorites with externalParams', async () => {
       libraryService.addFavoriteGenre.mockResolvedValue(mockFavoriteGenre);
 
-      const result = await controller.addFavoriteGenre(mockUser, { 
+      const result = await controller.addFavoriteGenre(mockUser, {
         externalParams: mockExternalParams,
       });
 
@@ -348,12 +394,14 @@ describe('LibraryController', () => {
 
     it('should throw BadRequestException when neither genreId nor externalParams provided', async () => {
       libraryService.addFavoriteGenre.mockRejectedValue(
-        new BadRequestException('Either genreId or externalParams must be provided'),
+        new BadRequestException(
+          'Either genreId or externalParams must be provided',
+        ),
       );
 
-      await expect(controller.addFavoriteGenre(mockUser, {}))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(controller.addFavoriteGenre(mockUser, {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw ConflictException when genre already in favorites', async () => {
@@ -361,9 +409,9 @@ describe('LibraryController', () => {
         new ConflictException('Genre is already in favorites'),
       );
 
-      await expect(controller.addFavoriteGenre(mockUser, { genreId: mockGenreId }))
-        .rejects
-        .toThrow(ConflictException);
+      await expect(
+        controller.addFavoriteGenre(mockUser, { genreId: mockGenreId }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
@@ -371,9 +419,15 @@ describe('LibraryController', () => {
     it('should remove genre from favorites', async () => {
       libraryService.removeFavoriteGenre.mockResolvedValue(undefined);
 
-      const result = await controller.removeFavoriteGenre(mockUser, mockGenreId);
+      const result = await controller.removeFavoriteGenre(
+        mockUser,
+        mockGenreId,
+      );
 
-      expect(libraryService.removeFavoriteGenre).toHaveBeenCalledWith(mockUserId, mockGenreId);
+      expect(libraryService.removeFavoriteGenre).toHaveBeenCalledWith(
+        mockUserId,
+        mockGenreId,
+      );
       expect(result).toEqual({ message: 'Genre removed from favorites' });
     });
 
@@ -382,9 +436,9 @@ describe('LibraryController', () => {
         new NotFoundException('Genre is not in favorites'),
       );
 
-      await expect(controller.removeFavoriteGenre(mockUser, mockGenreId))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        controller.removeFavoriteGenre(mockUser, mockGenreId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -395,7 +449,11 @@ describe('LibraryController', () => {
 
       const result = await controller.getFavoriteGenres(mockUser, 1, 20);
 
-      expect(libraryService.getFavoriteGenres).toHaveBeenCalledWith(mockUserId, 1, 20);
+      expect(libraryService.getFavoriteGenres).toHaveBeenCalledWith(
+        mockUserId,
+        1,
+        20,
+      );
       expect(result).toEqual(mockResponse);
     });
   });

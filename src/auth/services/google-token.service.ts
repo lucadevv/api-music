@@ -18,15 +18,16 @@ export class GoogleTokenService {
   private readonly audiences: string[];
 
   constructor(private readonly configService: ConfigService) {
-    const webClientId = this.configService.get<string>('oauth.google.clientId') || '';
-    const androidClientId = this.configService.get<string>('oauth.google.clientIdAndroid') || '';
-    const iosClientId = this.configService.get<string>('oauth.google.clientIdIos') || '';
+    const webClientId =
+      this.configService.get<string>('oauth.google.clientId') || '';
+    const androidClientId =
+      this.configService.get<string>('oauth.google.clientIdAndroid') || '';
+    const iosClientId =
+      this.configService.get<string>('oauth.google.clientIdIos') || '';
 
-    this.audiences = [
-      webClientId,
-      androidClientId,
-      iosClientId,
-    ].filter(id => id.length > 0);
+    this.audiences = [webClientId, androidClientId, iosClientId].filter(
+      (id) => id.length > 0,
+    );
 
     this.oauth2Client = new OAuth2Client(webClientId);
   }
@@ -52,7 +53,9 @@ export class GoogleTokenService {
         picture: payload.picture,
       };
     } catch (error) {
-      this.logger.error(`Failed to verify Google ID token: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Failed to verify Google ID token: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new UnauthorizedException('Invalid Google ID token');
     }
   }
@@ -64,14 +67,18 @@ export class GoogleTokenService {
       );
 
       if (!response.ok) {
-        this.logger.error(`Failed to verify Google access token: ${response.status}`);
+        this.logger.error(
+          `Failed to verify Google access token: ${response.status}`,
+        );
         throw new UnauthorizedException('Invalid Google access token');
       }
 
       const data = await response.json();
 
       if (!data.email) {
-        throw new UnauthorizedException('Google access token does not contain email');
+        throw new UnauthorizedException(
+          'Google access token does not contain email',
+        );
       }
 
       return {
@@ -83,21 +90,28 @@ export class GoogleTokenService {
         picture: data.picture,
       };
     } catch (error) {
-      this.logger.error(`Failed to verify Google access token: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Failed to verify Google access token: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw new UnauthorizedException('Invalid Google access token');
     }
   }
 
-  async verifyToken(idToken?: string, accessToken?: string): Promise<GoogleTokenInfo> {
+  async verifyToken(
+    idToken?: string,
+    accessToken?: string,
+  ): Promise<GoogleTokenInfo> {
     if (idToken) {
       return this.verifyIdToken(idToken);
     }
-    
+
     if (accessToken) {
       return this.verifyAccessToken(accessToken);
     }
 
-    throw new UnauthorizedException('No token provided for Google verification');
+    throw new UnauthorizedException(
+      'No token provided for Google verification',
+    );
   }
 
   async fetchProfilePicture(accessToken: string): Promise<string | null> {
@@ -112,18 +126,25 @@ export class GoogleTokenService {
       );
 
       if (!response.ok) {
-        this.logger.warn(`Failed to fetch profile picture: ${response.status} ${response.statusText}`);
+        this.logger.warn(
+          `Failed to fetch profile picture: ${response.status} ${response.statusText}`,
+        );
         return null;
       }
 
       const data = await response.json();
       const photos = data.photos;
       if (photos && photos.length > 0) {
-        return photos.find((p: { default?: boolean; url: string }) => p.default)?.url || photos[0].url;
+        return (
+          photos.find((p: { default?: boolean; url: string }) => p.default)
+            ?.url || photos[0].url
+        );
       }
       return null;
     } catch (error) {
-      this.logger.warn(`Failed to fetch profile picture: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.warn(
+        `Failed to fetch profile picture: ${error instanceof Error ? error.message : String(error)}`,
+      );
       return null;
     }
   }

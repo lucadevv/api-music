@@ -103,7 +103,7 @@ describe('RecentSearchService', () => {
       const normalizedQuery = 'test query';
 
       mockDataSource.query.mockResolvedValue(undefined);
-      mockRepository.findOne.mockResolvedValue(mockRecentSearch as RecentSearch);
+      mockRepository.findOne.mockResolvedValue(mockRecentSearch);
 
       await service.saveSearch(mockUserId, query);
 
@@ -138,7 +138,7 @@ describe('RecentSearchService', () => {
 
     it('should use default filter when not provided', async () => {
       mockDataSource.query.mockResolvedValue(undefined);
-      mockRepository.findOne.mockResolvedValue(mockRecentSearch as RecentSearch);
+      mockRepository.findOne.mockResolvedValue(mockRecentSearch);
 
       await service.saveSearch(mockUserId, 'test query');
 
@@ -192,7 +192,12 @@ describe('RecentSearchService', () => {
         query: normalizedQuery,
       } as RecentSearch);
 
-      await service.updateSelectedSong(mockUserId, query, mockVideoId, songData);
+      await service.updateSelectedSong(
+        mockUserId,
+        query,
+        mockVideoId,
+        songData,
+      );
 
       expect(mockDataSource.query).toHaveBeenCalledWith(
         expect.any(String),
@@ -275,9 +280,21 @@ describe('RecentSearchService', () => {
 
     it('should return searches ordered by lastSearchedAt DESC', async () => {
       const searches = [
-        { ...mockRecentSearch, id: '1', lastSearchedAt: new Date('2024-01-03') },
-        { ...mockRecentSearch, id: '2', lastSearchedAt: new Date('2024-01-02') },
-        { ...mockRecentSearch, id: '3', lastSearchedAt: new Date('2024-01-01') },
+        {
+          ...mockRecentSearch,
+          id: '1',
+          lastSearchedAt: new Date('2024-01-03'),
+        },
+        {
+          ...mockRecentSearch,
+          id: '2',
+          lastSearchedAt: new Date('2024-01-02'),
+        },
+        {
+          ...mockRecentSearch,
+          id: '3',
+          lastSearchedAt: new Date('2024-01-01'),
+        },
       ];
       mockRepository.find.mockResolvedValue(searches);
 
@@ -312,10 +329,9 @@ describe('RecentSearchService', () => {
     it('should not throw error when search not found', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.deleteSearch(mockUserId, 'nonexistent-id'))
-        .resolves
-        .not
-        .toThrow();
+      await expect(
+        service.deleteSearch(mockUserId, 'nonexistent-id'),
+      ).resolves.not.toThrow();
 
       expect(mockRepository.remove).not.toHaveBeenCalled();
     });
@@ -341,16 +357,17 @@ describe('RecentSearchService', () => {
 
       await service.clearRecentSearches(mockUserId);
 
-      expect(mockRepository.delete).toHaveBeenCalledWith({ userId: mockUserId });
+      expect(mockRepository.delete).toHaveBeenCalledWith({
+        userId: mockUserId,
+      });
     });
 
     it('should not throw error when no searches to delete', async () => {
       mockRepository.delete.mockResolvedValue({} as any);
 
-      await expect(service.clearRecentSearches(mockUserId))
-        .resolves
-        .not
-        .toThrow();
+      await expect(
+        service.clearRecentSearches(mockUserId),
+      ).resolves.not.toThrow();
     });
   });
 });

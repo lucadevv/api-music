@@ -26,7 +26,18 @@ export class UpdateUserSettingsDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['flat', 'rock', 'pop', 'bass_boost', 'treble_boost', 'vocal', 'classical', 'jazz', 'electronic', 'custom'])
+  @IsIn([
+    'flat',
+    'rock',
+    'pop',
+    'bass_boost',
+    'treble_boost',
+    'vocal',
+    'classical',
+    'jazz',
+    'electronic',
+    'custom',
+  ])
   equalizerPreset?: string;
 }
 

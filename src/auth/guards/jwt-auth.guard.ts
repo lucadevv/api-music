@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  ExecutionContext,
-} from '@nestjs/common';
+import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -32,7 +29,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         // Si falla, permitir acceso sin usuario (endpoint público)
         const result = super.canActivate(context);
         if (result instanceof Promise) {
-          return result.catch(() => true) as Promise<boolean>;
+          return result.catch(() => true);
         }
         return result;
       }
@@ -46,8 +43,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   private extractTokenFromHeader(request: any): string | undefined {
-    const [type, token] =
-      request.headers.authorization?.split(' ') ?? [];
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
 }

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, IsNull } from 'typeorm';
@@ -12,9 +13,12 @@ import { FavoriteGenre } from './entities/favorite-genre.entity';
 import { Song } from '../music/entities/song.entity';
 import { Playlist } from '../music/entities/playlist.entity';
 import { Genre } from '../music/entities/genre.entity';
+import { MusicApiService } from '../music/services/music-api.service';
 
 @Injectable()
 export class LibraryService {
+  private readonly logger = new Logger(LibraryService.name);
+
   constructor(
     @InjectRepository(FavoriteSong)
     private readonly favoriteSongRepository: Repository<FavoriteSong>,
@@ -28,6 +32,7 @@ export class LibraryService {
     private readonly playlistRepository: Repository<Playlist>,
     @InjectRepository(Genre)
     private readonly genreRepository: Repository<Genre>,
+    private readonly musicApiService: MusicApiService,
   ) {}
 
   private async syncGenreFromExternal(
@@ -57,10 +62,18 @@ export class LibraryService {
     userId: string,
     songId?: string,
     videoId?: string,
-    metadata?: { title?: string; artist?: string; thumbnail?: string; duration?: number; streamUrl?: string },
+    metadata?: {
+      title?: string;
+      artist?: string;
+      thumbnail?: string;
+      duration?: number;
+      streamUrl?: string;
+    },
   ): Promise<FavoriteSong> {
     if (!songId && !videoId) {
-      throw new BadRequestException('Either songId or videoId must be provided');
+      throw new BadRequestException(
+        'Either songId or videoId must be provided',
+      );
     }
 
     let song: Song | null = null;
@@ -77,17 +90,21 @@ export class LibraryService {
           artist: metadata?.artist || 'Unknown',
           thumbnail: metadata?.thumbnail || null,
           duration: metadata?.duration || 0,
-          audioUrl: metadata?.streamUrl || null,
         });
         song = await this.songRepository.save(song);
-      } else if (metadata && (metadata.title || metadata.artist || metadata.thumbnail || metadata.duration)) {
+      } else if (
+        metadata &&
+        (metadata.title ||
+          metadata.artist ||
+          metadata.thumbnail ||
+          metadata.duration)
+      ) {
         // Actualizar si tenemos mejor metadata
         await this.songRepository.update(song.id, {
           title: metadata.title || song.title,
           artist: metadata.artist || song.artist,
           thumbnail: metadata.thumbnail || song.thumbnail,
           duration: metadata.duration || song.duration,
-          audioUrl: metadata.streamUrl || song.audioUrl,
         });
         song = await this.songRepository.findOne({ where: { id: song.id } });
       }
@@ -126,7 +143,10 @@ export class LibraryService {
     }) as Promise<FavoriteSong>;
   }
 
-  async removeFavoriteSong(userId: string, songIdOrVideoId: string): Promise<void> {
+  async removeFavoriteSong(
+    userId: string,
+    songIdOrVideoId: string,
+  ): Promise<void> {
     let favorite: FavoriteSong | null = null;
     let actualSongId: string | null = null;
 
@@ -176,8 +196,26 @@ export class LibraryService {
   }
 
   async isSongFavorite(userId: string, songId: string): Promise<boolean> {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        songId,
+      );
+
+    if (isUuid) {
+      const favorite = await this.favoriteSongRepository.findOne({
+        where: { userId, songId },
+      });
+      return !!favorite;
+    }
+
+    const song = await this.songRepository.findOne({
+      where: { videoId: songId },
+    });
+
+    if (!song) return false;
+
     const favorite = await this.favoriteSongRepository.findOne({
-      where: { userId, songId },
+      where: { userId, songId: song.id },
     });
     return !!favorite;
   }
@@ -187,7 +225,12 @@ export class LibraryService {
     userId: string,
     playlistId?: string,
     externalPlaylistId?: string,
-    metadata?: { name?: string; thumbnail?: string; description?: string; trackCount?: number },
+    metadata?: {
+      name?: string;
+      thumbnail?: string;
+      description?: string;
+      trackCount?: number;
+    },
   ): Promise<FavoritePlaylist> {
     if (!playlistId && !externalPlaylistId) {
       throw new BadRequestException(
@@ -196,7 +239,7 @@ export class LibraryService {
     }
 
     let playlist: Playlist | null = null;
-    let trackCount = metadata?.trackCount ?? 0;
+    const trackCount = metadata?.trackCount ?? 0;
 
     if (externalPlaylistId) {
       // Buscar si ya existe por externalPlaylistId
@@ -206,7 +249,10 @@ export class LibraryService {
 
       if (playlist) {
         // Si ya existe y tenemos metadata, actualizarla
-        if (metadata && (metadata.name || metadata.thumbnail || metadata.description)) {
+        if (
+          metadata &&
+          (metadata.name || metadata.thumbnail || metadata.description)
+        ) {
           await this.playlistRepository.update(playlist.id, {
             name: metadata.name || playlist.name,
             thumbnail: metadata.thumbnail || playlist.thumbnail,
@@ -300,7 +346,11 @@ export class LibraryService {
     }
 
     await this.favoritePlaylistRepository.remove(favorite);
-    await this.playlistRepository.decrement({ id: actualPlaylistId }, 'likeCount', 1);
+    await this.playlistRepository.decrement(
+      { id: actualPlaylistId },
+      'likeCount',
+      1,
+    );
   }
 
   async getFavoritePlaylists(
@@ -436,7 +486,12 @@ export class LibraryService {
 
   async createUserPlaylist(
     userId: string,
-    data: { name: string; description?: string; thumbnail?: string; isPublic?: boolean },
+    data: {
+      name: string;
+      description?: string;
+      thumbnail?: string;
+      isPublic?: boolean;
+    },
   ) {
     const playlist = this.playlistRepository.create({
       name: data.name,
@@ -458,7 +513,7 @@ export class LibraryService {
   ): Promise<{ data: any[]; total: number }> {
     // Solo mostrar playlists CREADAS POR EL USUARIO (userId no null/vacío)
     const [data, total] = await this.playlistRepository.findAndCount({
-      where: { userId: Not(IsNull()) },  // Solo playlists con userId (creadas por usuarios)
+      where: { userId: Not(IsNull()) }, // Solo playlists con userId (creadas por usuarios)
       relations: ['songs'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -478,7 +533,12 @@ export class LibraryService {
     };
   }
 
-  async getUserPlaylist(userId: string, playlistId: string) {
+  async getUserPlaylist(
+    userId: string,
+    playlistId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
     const playlist = await this.playlistRepository.findOne({
       where: { id: playlistId, userId },
       relations: ['songs'],
@@ -488,20 +548,64 @@ export class LibraryService {
       throw new NotFoundException(`Playlist with ID ${playlistId} not found`);
     }
 
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedSongs = playlist.songs.slice(startIndex, endIndex);
+
+    let songsWithStreamUrls: any[] = paginatedSongs;
+
+    if (paginatedSongs.length > 0) {
+      const validSongs = paginatedSongs.filter((s) => s.videoId);
+      const videoIds = validSongs.map((s) => s.videoId as string);
+
+      if (videoIds.length > 0) {
+        try {
+          const streamUrlsResponse =
+            await this.musicApiService.getBatchStreamUrls(videoIds);
+
+          const streamUrlsMap = new Map(
+            streamUrlsResponse.results
+              .filter((r: any) => r.url)
+              .map((r: any) => [r.videoId, r.url]),
+          );
+
+          songsWithStreamUrls = paginatedSongs.map((song) => ({
+            id: song.id,
+            videoId: song.videoId,
+            title: song.title,
+            artist: song.artist,
+            thumbnail: song.thumbnail,
+            duration: song.duration,
+            streamUrl: streamUrlsMap.get(song.videoId || '') || null,
+          }));
+        } catch (error) {
+          this.logger.error(
+            'Failed to fetch streamUrls for playlist songs',
+            error,
+          );
+          songsWithStreamUrls = paginatedSongs.map((song) => ({
+            id: song.id,
+            videoId: song.videoId,
+            title: song.title,
+            artist: song.artist,
+            thumbnail: song.thumbnail,
+            duration: song.duration,
+            streamUrl: null,
+          }));
+        }
+      }
+    }
+
     return {
       id: playlist.id,
       name: playlist.name,
       description: playlist.description,
       thumbnail: playlist.thumbnail,
       isPublic: playlist.isPublic,
-      songs: playlist.songs.map((s) => ({
-        id: s.id,
-        videoId: s.videoId,
-        title: s.title,
-        artist: s.artist,
-        thumbnail: s.thumbnail,
-        duration: s.duration,
-      })),
+      songCount: playlist.songs.length,
+      page,
+      limit,
+      songs: songsWithStreamUrls,
       createdAt: playlist.createdAt,
     };
   }
@@ -509,7 +613,12 @@ export class LibraryService {
   async updateUserPlaylist(
     userId: string,
     playlistId: string,
-    data: { name?: string; description?: string; thumbnail?: string; isPublic?: boolean },
+    data: {
+      name?: string;
+      description?: string;
+      thumbnail?: string;
+      isPublic?: boolean;
+    },
   ) {
     const playlist = await this.playlistRepository.findOne({
       where: { id: playlistId, userId },
@@ -543,7 +652,13 @@ export class LibraryService {
   async addSongToUserPlaylist(
     userId: string,
     playlistId: string,
-    data: { videoId: string; title?: string; artist?: string; thumbnail?: string; duration?: number },
+    data: {
+      videoId: string;
+      title?: string;
+      artist?: string;
+      thumbnail?: string;
+      duration?: number;
+    },
   ) {
     const playlist = await this.playlistRepository.findOne({
       where: { id: playlistId, userId },
@@ -571,7 +686,7 @@ export class LibraryService {
     }
 
     // Agregar a la playlist si no existe
-    const exists = playlist.songs.some((s) => s.id === song!.id);
+    const exists = playlist.songs.some((s) => s.id === song.id);
     if (!exists) {
       playlist.songs.push(song);
       await this.playlistRepository.save(playlist);
@@ -580,7 +695,11 @@ export class LibraryService {
     return this.getUserPlaylist(userId, playlistId);
   }
 
-  async removeSongFromUserPlaylist(userId: string, playlistId: string, songId: string) {
+  async removeSongFromUserPlaylist(
+    userId: string,
+    playlistId: string,
+    songId: string,
+  ) {
     const playlist = await this.playlistRepository.findOne({
       where: { id: playlistId, userId },
       relations: ['songs'],

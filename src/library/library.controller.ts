@@ -62,22 +62,28 @@ export class LibraryController {
       user.userId,
       dto.songId,
       dto.videoId,
-      dto.title || dto.artist || dto.thumbnail || dto.streamUrl ? {
-        title: dto.title,
-        artist: dto.artist,
-        thumbnail: dto.thumbnail,
-        duration: dto.duration,
-        streamUrl: dto.streamUrl,
-      } : undefined,
+      dto.title || dto.artist || dto.thumbnail || dto.streamUrl
+        ? {
+            title: dto.title,
+            artist: dto.artist,
+            thumbnail: dto.thumbnail,
+            duration: dto.duration,
+            streamUrl: dto.streamUrl,
+          }
+        : undefined,
     );
   }
 
   @Delete('songs/:songId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Eliminar canción de favoritos',
-    description: 'Puede usar el songId (UUID) o el videoId del servicio externo',
+    description:
+      'Puede usar el songId (UUID) o el videoId del servicio externo',
   })
-  @ApiParam({ name: 'songId', description: 'ID de la canción (UUID) o videoId' })
+  @ApiParam({
+    name: 'songId',
+    description: 'ID de la canción (UUID) o videoId',
+  })
   @ApiResponse({
     status: 200,
     description: 'Canción eliminada de favoritos exitosamente',
@@ -94,7 +100,9 @@ export class LibraryController {
 
   @Get('songs')
   // @UseInterceptors(CacheInterceptor) // Disabled - stream URLs expire and need to be fetched fresh
-  @ApiOperation({ summary: 'Obtener canciones favoritas del usuario con stream URLs' })
+  @ApiOperation({
+    summary: 'Obtener canciones favoritas del usuario con stream URLs',
+  })
   @ApiQuery({
     name: 'page',
     description: 'Número de página',
@@ -117,41 +125,48 @@ export class LibraryController {
   async getFavoriteSongs(
     @CurrentUser() user: any,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    const result = await this.libraryService.getFavoriteSongs(user.userId, page, limit);
-    
+    const result = await this.libraryService.getFavoriteSongs(
+      user.userId,
+      page,
+      limit,
+    );
+
     // Get videoIds to fetch stream URLs
     const songs = result.data.map((fav) => fav.song);
     const videoIds = songs
       .map((s) => s.videoId)
       .filter((v): v is string => !!v);
-    
-    // Fetch stream URLs for all songs
-    let streamUrlsMap: Record<string, string> = {};
+
+    // Fetch stream URLs for all songs - bypass cache for unique URLs
+    const streamUrlsMap: Record<string, string> = {};
     if (videoIds.length > 0) {
       try {
-        const streams = await this.musicApiService.getBatchStreamUrls(videoIds);
+        const streams = await this.musicApiService.getBatchStreamUrls(
+          videoIds,
+          true,
+        );
         streams.results.forEach((s) => {
           if (s.url) {
             streamUrlsMap[s.videoId] = s.url;
           }
         });
-      } catch (e) {
-        // If stream fetch fails, continue without URLs
-      }
+      } catch (e) {}
     }
-    
-    // Add stream_url to each song
+
+    // Add streamUrl to each song
     const songsWithStreams = result.data.map((fav) => ({
       id: fav.id,
       song: {
         ...fav.song,
-        streamUrl: fav.song.videoId ? streamUrlsMap[fav.song.videoId] : undefined,
+        streamUrl: fav.song.videoId
+          ? streamUrlsMap[fav.song.videoId]
+          : undefined,
       },
       createdAt: fav.createdAt,
     }));
-    
+
     return {
       data: songsWithStreams,
       total: result.total,
@@ -208,21 +223,27 @@ export class LibraryController {
       user.userId,
       dto.playlistId,
       dto.externalPlaylistId,
-      dto.name || dto.thumbnail || dto.description || dto.trackCount ? {
-        name: dto.name,
-        thumbnail: dto.thumbnail,
-        description: dto.description,
-        trackCount: dto.trackCount,
-      } : undefined,
+      dto.name || dto.thumbnail || dto.description || dto.trackCount
+        ? {
+            name: dto.name,
+            thumbnail: dto.thumbnail,
+            description: dto.description,
+            trackCount: dto.trackCount,
+          }
+        : undefined,
     );
   }
 
   @Delete('playlists/:playlistId')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Eliminar playlist de favoritos',
-    description: 'Puede usar el playlistId (UUID) o el externalPlaylistId del servicio externo',
+    description:
+      'Puede usar el playlistId (UUID) o el externalPlaylistId del servicio externo',
   })
-  @ApiParam({ name: 'playlistId', description: 'ID de la playlist (UUID) o externalPlaylistId' })
+  @ApiParam({
+    name: 'playlistId',
+    description: 'ID de la playlist (UUID) o externalPlaylistId',
+  })
   @ApiResponse({
     status: 200,
     description: 'Playlist eliminada de favoritos exitosamente',
@@ -424,7 +445,11 @@ export class LibraryController {
         name: { type: 'string', description: 'Nombre de la playlist' },
         description: { type: 'string', description: 'Descripción opcional' },
         thumbnail: { type: 'string', description: 'URL de thumbnail opcional' },
-        isPublic: { type: 'boolean', description: 'Si la playlist es pública', default: false },
+        isPublic: {
+          type: 'boolean',
+          description: 'Si la playlist es pública',
+          default: false,
+        },
       },
       required: ['name'],
     },
@@ -465,11 +490,35 @@ export class LibraryController {
   @Get('user-playlists/:playlistId')
   @ApiOperation({ summary: 'Obtener detalles de una playlist del usuario' })
   @ApiParam({ name: 'playlistId', description: 'ID de la playlist' })
+  @ApiQuery({
+    name: 'page',
+    description: 'Número de página de canciones',
+    required: false,
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Canciones por página',
+    required: false,
+    type: Number,
+    example: 10,
+  })
   @ApiResponse({ status: 200, description: 'Playlist obtenida exitosamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Playlist no encontrada' })
-  async getUserPlaylist(@CurrentUser() user: any, @Param('playlistId') playlistId: string) {
-    return this.libraryService.getUserPlaylist(user.userId, playlistId);
+  async getUserPlaylist(
+    @CurrentUser() user: any,
+    @Param('playlistId') playlistId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.libraryService.getUserPlaylist(
+      user.userId,
+      playlistId,
+      page,
+      limit,
+    );
   }
 
   @Put('user-playlists/:playlistId')
@@ -486,7 +535,10 @@ export class LibraryController {
       },
     },
   })
-  @ApiResponse({ status: 200, description: 'Playlist actualizada exitosamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Playlist actualizada exitosamente',
+  })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Playlist no encontrada' })
   async updateUserPlaylist(
@@ -494,7 +546,11 @@ export class LibraryController {
     @Param('playlistId') playlistId: string,
     @Body() body: any,
   ) {
-    return this.libraryService.updateUserPlaylist(user.userId, playlistId, body);
+    return this.libraryService.updateUserPlaylist(
+      user.userId,
+      playlistId,
+      body,
+    );
   }
 
   @Delete('user-playlists/:playlistId')
@@ -503,7 +559,10 @@ export class LibraryController {
   @ApiResponse({ status: 200, description: 'Playlist eliminada exitosamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Playlist no encontrada' })
-  async deleteUserPlaylist(@CurrentUser() user: any, @Param('playlistId') playlistId: string) {
+  async deleteUserPlaylist(
+    @CurrentUser() user: any,
+    @Param('playlistId') playlistId: string,
+  ) {
     await this.libraryService.deleteUserPlaylist(user.userId, playlistId);
     return { message: 'Playlist deleted successfully' };
   }
@@ -532,7 +591,11 @@ export class LibraryController {
     @Param('playlistId') playlistId: string,
     @Body() body: any,
   ) {
-    return this.libraryService.addSongToUserPlaylist(user.userId, playlistId, body);
+    return this.libraryService.addSongToUserPlaylist(
+      user.userId,
+      playlistId,
+      body,
+    );
   }
 
   @Delete('user-playlists/:playlistId/songs/:songId')
@@ -546,7 +609,11 @@ export class LibraryController {
     @Param('playlistId') playlistId: string,
     @Param('songId') songId: string,
   ) {
-    await this.libraryService.removeSongFromUserPlaylist(user.userId, playlistId, songId);
+    await this.libraryService.removeSongFromUserPlaylist(
+      user.userId,
+      playlistId,
+      songId,
+    );
     return { message: 'Song removed from playlist' };
   }
 }

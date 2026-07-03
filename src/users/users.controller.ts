@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Put, Patch, Body, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -12,7 +6,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { UpdateUserSettingsDto, UserSettingsResponseDto } from './dto/update-settings.dto';
+import {
+  UpdateUserSettingsDto,
+  UserSettingsResponseDto,
+} from './dto/update-settings.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -32,7 +29,9 @@ export class UsersController {
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
-  async getSettings(@CurrentUser() user: any): Promise<UserSettingsResponseDto> {
+  async getSettings(
+    @CurrentUser() user: any,
+  ): Promise<UserSettingsResponseDto> {
     return this.usersService.getSettings(user.userId);
   }
 
@@ -46,6 +45,24 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   async updateSettings(
+    @CurrentUser() user: any,
+    @Body() updateSettingsDto: UpdateUserSettingsDto,
+  ): Promise<UserSettingsResponseDto> {
+    return this.usersService.updateSettings(user.userId, updateSettingsDto);
+  }
+
+  @Patch('me/settings')
+  @ApiOperation({
+    summary: 'Actualizar configuración del usuario (alias PATCH)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Configuración actualizada',
+    type: UserSettingsResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  async patchSettings(
     @CurrentUser() user: any,
     @Body() updateSettingsDto: UpdateUserSettingsDto,
   ): Promise<UserSettingsResponseDto> {

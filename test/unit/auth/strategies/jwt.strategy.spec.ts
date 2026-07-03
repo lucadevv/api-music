@@ -3,7 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from '../../../../src/auth/strategies/jwt.strategy';
 import { UsersService } from '../../../../src/users/users.service';
-import { mockUser, mockInactiveUser, mockJwtPayload } from '../../../utils/mocks';
+import {
+  mockUser,
+  mockInactiveUser,
+  mockJwtPayload,
+} from '../../../utils/mocks';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
@@ -71,25 +75,25 @@ describe('JwtStrategy', () => {
     it('should throw UnauthorizedException when user not found', async () => {
       usersService.findById.mockResolvedValue(null);
 
-      await expect(strategy.validate(mockJwtPayload))
-        .rejects
-        .toThrow(UnauthorizedException);
-      
-      await expect(strategy.validate(mockJwtPayload))
-        .rejects
-        .toThrow('User not found or inactive');
+      await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(
+        UnauthorizedException,
+      );
+
+      await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(
+        'User not found or inactive',
+      );
     });
 
     it('should throw UnauthorizedException when user is inactive', async () => {
       usersService.findById.mockResolvedValue(mockInactiveUser);
 
-      await expect(strategy.validate(mockJwtPayload))
-        .rejects
-        .toThrow(UnauthorizedException);
-      
-      await expect(strategy.validate(mockJwtPayload))
-        .rejects
-        .toThrow('User not found or inactive');
+      await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(
+        UnauthorizedException,
+      );
+
+      await expect(strategy.validate(mockJwtPayload)).rejects.toThrow(
+        'User not found or inactive',
+      );
     });
 
     it('should call findById with correct user id from payload', async () => {

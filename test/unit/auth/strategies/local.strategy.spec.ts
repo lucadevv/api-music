@@ -38,20 +38,23 @@ describe('LocalStrategy', () => {
 
       const result = await strategy.validate(mockUserEmail, 'password123');
 
-      expect(authService.validateUser).toHaveBeenCalledWith(mockUserEmail, 'password123');
+      expect(authService.validateUser).toHaveBeenCalledWith(
+        mockUserEmail,
+        'password123',
+      );
       expect(result).toEqual(mockUser);
     });
 
     it('should throw UnauthorizedException when credentials are invalid', async () => {
       authService.validateUser.mockResolvedValue(null);
 
-      await expect(strategy.validate(mockUserEmail, 'wrongpassword'))
-        .rejects
-        .toThrow(UnauthorizedException);
-      
-      await expect(strategy.validate(mockUserEmail, 'wrongpassword'))
-        .rejects
-        .toThrow('Invalid credentials');
+      await expect(
+        strategy.validate(mockUserEmail, 'wrongpassword'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      await expect(
+        strategy.validate(mockUserEmail, 'wrongpassword'),
+      ).rejects.toThrow('Invalid credentials');
     });
 
     it('should call validateUser with email as username', async () => {
@@ -59,7 +62,10 @@ describe('LocalStrategy', () => {
 
       await strategy.validate('test@example.com', 'password123');
 
-      expect(authService.validateUser).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(authService.validateUser).toHaveBeenCalledWith(
+        'test@example.com',
+        'password123',
+      );
     });
 
     it('should pass password correctly', async () => {

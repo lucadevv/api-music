@@ -8,18 +8,19 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([RecentSearch]),
-        HttpModule.registerAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-                timeout: configService.get<number>('externalApi.musicServiceTimeout') || 30000,
-                maxRedirects: 5,
-            }),
-        }),
-    ],
-    providers: [RecentSearchService, MusicApiService],
-    exports: [RecentSearchService, MusicApiService, TypeOrmModule],
+  imports: [
+    TypeOrmModule.forFeature([RecentSearch]),
+    HttpModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        timeout:
+          configService.get<number>('externalApi.musicServiceTimeout') || 30000,
+        maxRedirects: 5,
+      }),
+    }),
+  ],
+  providers: [RecentSearchService, MusicApiService],
+  exports: [RecentSearchService, MusicApiService, TypeOrmModule],
 })
 export class SharedModule {}

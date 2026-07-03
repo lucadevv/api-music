@@ -1,4 +1,10 @@
-import { IsUUID, IsOptional, IsString, IsNumber, MaxLength } from 'class-validator';
+import {
+  IsUUID,
+  IsOptional,
+  IsString,
+  IsNumber,
+  MaxLength,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AddFavoriteSongDto {

@@ -79,7 +79,9 @@ describe('MusicApiService', () => {
   // =====================
   describe('explore', () => {
     it('should return explore content', async () => {
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockExploreResponse)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockExploreResponse)),
+      );
 
       const result = await service.explore();
 
@@ -97,9 +99,7 @@ describe('MusicApiService', () => {
       });
       httpService.get.mockReturnValue(throwError(() => axiosError));
 
-      await expect(service.explore())
-        .rejects
-        .toThrow(HttpException);
+      await expect(service.explore()).rejects.toThrow(HttpException);
     });
 
     it('should throw HttpException with GATEWAY_TIMEOUT on timeout', async () => {
@@ -111,7 +111,9 @@ describe('MusicApiService', () => {
         fail('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(HttpStatus.GATEWAY_TIMEOUT);
+        expect((error as HttpException).getStatus()).toBe(
+          HttpStatus.GATEWAY_TIMEOUT,
+        );
       }
     });
 
@@ -124,7 +126,9 @@ describe('MusicApiService', () => {
         fail('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(HttpStatus.SERVICE_UNAVAILABLE);
+        expect((error as HttpException).getStatus()).toBe(
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
       }
     });
 
@@ -137,7 +141,9 @@ describe('MusicApiService', () => {
         fail('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(HttpStatus.SERVICE_UNAVAILABLE);
+        expect((error as HttpException).getStatus()).toBe(
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
       }
     });
 
@@ -151,7 +157,9 @@ describe('MusicApiService', () => {
         fail('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
+        expect((error as HttpException).getStatus()).toBe(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
     });
 
@@ -213,7 +221,9 @@ describe('MusicApiService', () => {
   describe('getMoodPlaylists', () => {
     it('should return mood playlists', async () => {
       const mockMoodPlaylists = [mockPlaylistResponse];
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockMoodPlaylists)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockMoodPlaylists)),
+      );
 
       const result = await service.getMoodPlaylists('relax');
 
@@ -239,7 +249,9 @@ describe('MusicApiService', () => {
   describe('getGenrePlaylists', () => {
     it('should return genre playlists', async () => {
       const mockGenrePlaylists = [mockPlaylistResponse];
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockGenrePlaylists)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockGenrePlaylists)),
+      );
 
       const result = await service.getGenrePlaylists('pop');
 
@@ -256,7 +268,9 @@ describe('MusicApiService', () => {
   // =====================
   describe('getPlaylist', () => {
     it('should return playlist details', async () => {
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockPlaylistResponse)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockPlaylistResponse)),
+      );
 
       const result = await service.getPlaylist(mockExternalPlaylistId);
 
@@ -289,7 +303,9 @@ describe('MusicApiService', () => {
         duration: mockStreamResponse.duration,
         thumbnail: mockStreamResponse.thumbnail,
       };
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockedResponsePayload)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockedResponsePayload)),
+      );
 
       const result = await service.getStreamUrl(mockVideoId);
 
@@ -321,7 +337,9 @@ describe('MusicApiService', () => {
   // =====================
   describe('search', () => {
     it('should search with default filter', async () => {
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockSearchResponse)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockSearchResponse)),
+      );
 
       const result = await service.search('test query');
 
@@ -333,7 +351,9 @@ describe('MusicApiService', () => {
     });
 
     it('should search with custom filter', async () => {
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockSearchResponse)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockSearchResponse)),
+      );
 
       const result = await service.search('test query', 'playlists');
 
@@ -345,7 +365,9 @@ describe('MusicApiService', () => {
     });
 
     it('should encode special characters in query', async () => {
-      httpService.get.mockReturnValue(of(createAxiosResponse(mockSearchResponse)));
+      httpService.get.mockReturnValue(
+        of(createAxiosResponse(mockSearchResponse)),
+      );
 
       await service.search('test & special? characters');
 
@@ -370,8 +392,10 @@ describe('MusicApiService', () => {
   // =====================
   describe('configuration', () => {
     it('should use default values when config not provided', async () => {
-      const mockHttpServiceGet = jest.fn().mockReturnValue(of(createAxiosResponse(mockExploreResponse)));
-      
+      const mockHttpServiceGet = jest
+        .fn()
+        .mockReturnValue(of(createAxiosResponse(mockExploreResponse)));
+
       const module: TestingModule = await Test.createTestingModule({
         providers: [
           MusicApiService,

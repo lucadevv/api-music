@@ -15,7 +15,10 @@ import { Song } from './song.entity';
 
 @Entity('playlists')
 @Index(['userId', 'name'])
-@Index(['externalPlaylistId'], { unique: true, where: '"externalPlaylistId" IS NOT NULL' })
+@Index(['externalPlaylistId'], {
+  unique: true,
+  where: '"externalPlaylistId" IS NOT NULL',
+})
 export class Playlist {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -3,8 +3,17 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { NotFoundException } from '@nestjs/common';
 import { UsersService } from '../../../src/users/users.service';
-import { User, AuthProvider, UserRole } from '../../../src/users/entities/user.entity';
-import { mockUser, mockUserId, mockUserEmail, mockGoogleUser } from '../../utils/mocks';
+import {
+  User,
+  AuthProvider,
+  UserRole,
+} from '../../../src/users/entities/user.entity';
+import {
+  mockUser,
+  mockUserId,
+  mockUserEmail,
+  mockGoogleUser,
+} from '../../utils/mocks';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -89,7 +98,10 @@ describe('UsersService', () => {
     it('should return user when found by provider', async () => {
       mockRepository.findOne.mockResolvedValue(mockGoogleUser);
 
-      const result = await service.findByProvider(AuthProvider.GOOGLE, 'google-id-123');
+      const result = await service.findByProvider(
+        AuthProvider.GOOGLE,
+        'google-id-123',
+      );
 
       expect(result).toEqual(mockGoogleUser);
       expect(mockRepository.findOne).toHaveBeenCalledWith({
@@ -100,16 +112,26 @@ describe('UsersService', () => {
     it('should return null when user not found by provider', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findByProvider(AuthProvider.GOOGLE, 'nonexistent-id');
+      const result = await service.findByProvider(
+        AuthProvider.GOOGLE,
+        'nonexistent-id',
+      );
 
       expect(result).toBeNull();
     });
 
     it('should find user by Apple provider', async () => {
-      const appleUser = { ...mockUser, provider: AuthProvider.APPLE, providerId: 'apple-id' };
+      const appleUser = {
+        ...mockUser,
+        provider: AuthProvider.APPLE,
+        providerId: 'apple-id',
+      };
       mockRepository.findOne.mockResolvedValue(appleUser);
 
-      const result = await service.findByProvider(AuthProvider.APPLE, 'apple-id');
+      const result = await service.findByProvider(
+        AuthProvider.APPLE,
+        'apple-id',
+      );
 
       expect(result).toEqual(appleUser);
       expect(mockRepository.findOne).toHaveBeenCalledWith({
@@ -201,7 +223,9 @@ describe('UsersService', () => {
 
       const result = await service.update(mockUserId, updateData);
 
-      expect(mockRepository.findOne).toHaveBeenCalledWith({ where: { id: mockUserId } });
+      expect(mockRepository.findOne).toHaveBeenCalledWith({
+        where: { id: mockUserId },
+      });
       expect(mockRepository.save).toHaveBeenCalled();
       expect(result.firstName).toBe(updateData.firstName);
       expect(result.lastName).toBe(updateData.lastName);
@@ -210,9 +234,9 @@ describe('UsersService', () => {
     it('should throw NotFoundException when user not found', async () => {
       mockRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.update('nonexistent-id', { firstName: 'Updated' }))
-        .rejects
-        .toThrow(NotFoundException);
+      await expect(
+        service.update('nonexistent-id', { firstName: 'Updated' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should update provider info', async () => {

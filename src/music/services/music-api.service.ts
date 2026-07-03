@@ -7,28 +7,30 @@ import { AxiosRequestConfig } from 'axios';
 export interface ExploreResponse {
   moods?: Array<{ name: string; params: string }>;
   genres?: Array<{ name: string; params: string }>;
-  charts?: {
-    top_songs?: Array<{
-      videoId: string;
-      title: string;
-      artist?: string;
-      stream_url?: string;
-      thumbnail?: string;
-    }>;
-    trending?: Array<{
-      videoId: string;
-      title: string;
-      artist?: string;
-      stream_url?: string;
-      thumbnail?: string;
-    }>;
-  } | Array<{
-    title: string;
-    videoId: string;
-    artist?: string;
-    stream_url?: string;
-    thumbnail?: string;
-  }>;
+  charts?:
+    | {
+        top_songs?: Array<{
+          videoId: string;
+          title: string;
+          artist?: string;
+          streamUrl?: string;
+          thumbnail?: string;
+        }>;
+        trending?: Array<{
+          videoId: string;
+          title: string;
+          artist?: string;
+          streamUrl?: string;
+          thumbnail?: string;
+        }>;
+      }
+    | Array<{
+        title: string;
+        videoId: string;
+        artist?: string;
+        streamUrl?: string;
+        thumbnail?: string;
+      }>;
   [key: string]: any;
 }
 
@@ -41,14 +43,14 @@ export interface PlaylistResponse {
     title: string;
     artist: string;
     duration?: number;
-    stream_url?: string;
+    streamUrl?: string;
     thumbnail?: string;
   }>;
   tracks?: Array<{
     videoId: string;
     title: string;
     artists?: Array<{ name: string; id?: string }>;
-    stream_url?: string;
+    streamUrl?: string;
     thumbnail?: string;
   }>;
   [key: string]: any;
@@ -65,7 +67,7 @@ export interface SearchResponse {
     views?: string;
     thumbnails?: Array<{ url: string; width: number; height: number }>;
     thumbnail?: string;
-    stream_url?: string;
+    streamUrl?: string;
     category?: string;
     resultType?: string;
     [key: string]: any;
@@ -83,9 +85,15 @@ export class MusicApiService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.baseUrl = this.configService.get<string>('externalApi.musicServiceBaseUrl') || 'http://localhost:8000/api/v1';
-    this.timeout = this.configService.get<number>('externalApi.musicServiceTimeout') || 30000;
-    this.logger.log(`MusicApiService initialized with baseUrl: ${this.baseUrl}, timeout: ${this.timeout}ms`);
+    this.baseUrl =
+      this.configService.get<string>('externalApi.musicServiceBaseUrl') ||
+      'http://localhost:8000/api/v1';
+    this.timeout =
+      this.configService.get<number>('externalApi.musicServiceTimeout') ||
+      30000;
+    this.logger.log(
+      `MusicApiService initialized with baseUrl: ${this.baseUrl}, timeout: ${this.timeout}ms`,
+    );
   }
 
   /**
@@ -110,11 +118,38 @@ export class MusicApiService {
         this.httpService.get<T>(url, requestConfig),
       );
 
-      return response.data;
+      // Transform stream_url to streamUrl in the response
+      const transformedData = this.transformStreamUrlField(response.data);
+      return transformedData;
     } catch (error: any) {
       this.handleRequestError(error, endpoint);
       throw error; // Just in case handleRequestError does not throw (though it always should)
     }
+  }
+
+  private transformStreamUrlField(obj: any): any {
+    if (obj === null || obj === undefined || typeof obj !== 'object') {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.transformStreamUrlField(item));
+    }
+
+    const transformed: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        let value = obj[key];
+        // Transform stream_url to streamUrl
+        if (key === 'stream_url') {
+          value = this.transformStreamUrlField(value);
+          transformed['streamUrl'] = value;
+        } else {
+          transformed[key] = this.transformStreamUrlField(value);
+        }
+      }
+    }
+    return transformed;
   }
 
   private handleRequestError(error: any, endpoint: string): never {
@@ -139,9 +174,8 @@ export class MusicApiService {
         message = responseData.error;
       }
 
-      const httpStatus = status >= 500 && status < 600
-        ? status
-        : HttpStatus.BAD_GATEWAY;
+      const httpStatus =
+        status >= 500 && status < 600 ? status : HttpStatus.BAD_GATEWAY;
 
       throw new HttpException(
         {
@@ -165,7 +199,8 @@ export class MusicApiService {
       } else if (error.code === 'ECONNREFUSED') {
         throw new HttpException(
           {
-            message: 'External music service is not available (connection refused)',
+            message:
+              'External music service is not available (connection refused)',
             statusCode: HttpStatus.SERVICE_UNAVAILABLE,
             endpoint: `${this.baseUrl}${endpoint}`,
           },
@@ -200,18 +235,31 @@ export class MusicApiService {
   }
 
   async getMoodPlaylists(params: string): Promise<PlaylistResponse[]> {
-    return this.request<PlaylistResponse[]>(`/explore/moods/${params}?include_stream_urls=true`);
+    return this.request<PlaylistResponse[]>(
+      `/explore/moods/${params}?include_stream_urls=true`,
+    );
   }
 
   async getGenrePlaylists(params: string): Promise<PlaylistResponse[]> {
-    return this.request<PlaylistResponse[]>(`/explore/genres/${params}?include_stream_urls=true`);
+    return this.request<PlaylistResponse[]>(
+      `/explore/genres/${params}?include_stream_urls=true`,
+    );
   }
 
-  async getPlaylist(playlistId: string, startIndex: number = 0, limit: number = 20): Promise<PlaylistResponse> {
-    return this.request<PlaylistResponse>(`/playlists/${playlistId}?include_stream_urls=true&prefetch_count=10&start_index=${startIndex}&limit=${limit}`);
+  async getPlaylist(
+    playlistId: string,
+    startIndex: number = 0,
+    limit: number = 20,
+  ): Promise<PlaylistResponse> {
+    return this.request<PlaylistResponse>(
+      `/playlists/${playlistId}?include_stream_urls=true&prefetch_count=10&start_index=${startIndex}&limit=${limit}`,
+    );
   }
 
-  async getStreamUrl(videoId: string, bypassCache: boolean = false): Promise<{
+  async getStreamUrl(
+    videoId: string,
+    bypassCache: boolean = false,
+  ): Promise<{
     streamUrl: string;
     proxyUrl: string;
     title?: string;
@@ -234,7 +282,9 @@ export class MusicApiService {
 
     // Construir la URL del proxy usando el servicio Python (público, sin auth)
     // El endpoint /stream/proxy/{videoId} hace el proxy directamente sin problemas de CORS
-    const musicServiceBaseUrl = this.configService.get<string>('externalApi.musicServiceBaseUrl') || 'http://localhost:8000/api/v1';
+    const musicServiceBaseUrl =
+      this.configService.get<string>('externalApi.musicServiceBaseUrl') ||
+      'http://localhost:8000/api/v1';
     const proxyUrl = `${musicServiceBaseUrl}/stream/proxy/${videoId}`;
 
     return {
@@ -247,7 +297,10 @@ export class MusicApiService {
     };
   }
 
-  async getBatchStreamUrls(videoIds: string[]): Promise<{
+  async getBatchStreamUrls(
+    videoIds: string[],
+    bypassCache: boolean = false,
+  ): Promise<{
     results: Array<{
       videoId: string;
       url?: string;
@@ -265,11 +318,11 @@ export class MusicApiService {
       failed: number;
     };
   }> {
-    // Usar el endpoint batch de FastAPI (GET method)
+    const bypassParam = bypassCache ? '&bypass_cache=true' : '';
     const response = await this.request<{
       results: Array<any>;
       summary: any;
-    }>(`/stream/batch?ids=${videoIds.join(',')}`);
+    }>(`/stream/batch?ids=${videoIds.join(',')}${bypassParam}`);
 
     return {
       results: response.results.map((r: any) => ({
@@ -298,13 +351,23 @@ export class MusicApiService {
     return response;
   }
 
-  async search(query: string, filter: string = 'songs', startIndex: number = 0, limit: number = 20): Promise<SearchResponse> {
+  async search(
+    query: string,
+    filter: string = 'songs',
+    startIndex: number = 0,
+    limit: number = 20,
+  ): Promise<SearchResponse> {
     return this.request<SearchResponse>(
-      `/search/?q=${encodeURIComponent(query)}&filter=${filter}&include_stream_urls=true&start_index=${startIndex}&limit=${limit}`
+      `/search/?q=${encodeURIComponent(query)}&filter=${filter}&include_stream_urls=true&start_index=${startIndex}&limit=${limit}`,
     );
   }
 
-  async getRadioPlaylist(videoId: string, limit: number = 10, startIndex: number = 0, includeStreamUrls: boolean = false): Promise<{
+  async getRadioPlaylist(
+    videoId: string,
+    limit: number = 10,
+    startIndex: number = 0,
+    includeStreamUrls: boolean = false,
+  ): Promise<{
     tracks: Array<{
       videoId: string;
       title: string;
@@ -324,7 +387,9 @@ export class MusicApiService {
         thumbnail?: string;
         stream_url?: string;
       }>;
-    }>(`/watch/?video_id=${videoId}&radio=true&limit=${limit}&start_index=${startIndex}${streamParam}`);
+    }>(
+      `/watch/?video_id=${videoId}&radio=true&limit=${limit}&start_index=${startIndex}${streamParam}`,
+    );
   }
 
   async getWatchPlaylist(
@@ -366,9 +431,11 @@ export class MusicApiService {
     }>(`/watch/?${params.toString()}`);
   }
 
-  async getLyrics(browseId: string): Promise<{ lyrics?: string; source?: string; error?: string }> {
+  async getLyrics(
+    browseId: string,
+  ): Promise<{ lyrics?: string; source?: string; error?: string }> {
     return this.request<{ lyrics?: string; source?: string; error?: string }>(
-      `/browse/lyrics-by-video/${browseId}`
+      `/browse/lyrics-by-video/${browseId}`,
     );
   }
 }

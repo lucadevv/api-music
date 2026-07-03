@@ -10,18 +10,18 @@ import { Playlist } from '../music/entities/playlist.entity';
 import { Genre } from '../music/entities/genre.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            FavoriteSong,
-            FavoritePlaylist,
-            FavoriteGenre,
-            Song,
-            Playlist,
-            Genre,
-        ]),
-    ],
-    controllers: [LibraryController],
-    providers: [LibraryService],
-    exports: [LibraryService],
+  imports: [
+    TypeOrmModule.forFeature([
+      FavoriteSong,
+      FavoritePlaylist,
+      FavoriteGenre,
+      Song,
+      Playlist,
+      Genre,
+    ]),
+  ],
+  controllers: [LibraryController],
+  providers: [LibraryService],
+  exports: [LibraryService],
 })
 export class LibraryModule {}

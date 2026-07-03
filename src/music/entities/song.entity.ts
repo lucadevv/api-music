@@ -38,9 +38,6 @@ export class Song {
   @Column({ type: 'varchar', length: 1000, nullable: true })
   thumbnail: string | null;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
-  audioUrl: string | null;
-
   @Column({ type: 'int', default: 0 })
   duration: number; // Duración en segundos
 
